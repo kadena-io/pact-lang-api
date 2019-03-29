@@ -27,7 +27,7 @@ describe('Crypto Class', () => {
 
   test('Crypto.hexToBin(s) should throw error on incorrect input type', () => {
     expect(() => {
-      Crypto.binToHex(123);
+      Crypto.hexToBin(123);
     }).toThrow();
   });
 

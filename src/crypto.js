@@ -3,8 +3,7 @@ import blakejs from 'blakejs';
 
 export class Crypto {
   static binToHex(s) {
-    const constructor = s.constructor.name || null;
-    if (constructor !== 'Uint8Array') {
+    if (s.constructor !== Uint8Array) {
       throw new TypeError('Expected Uint8Array');
     }
     return Buffer.from(s).toString('hex');

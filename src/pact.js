@@ -3,9 +3,23 @@ import { Crypto } from './crypto';
 const KEY_PAIR = Crypto.genKeyPair();
 
 export class Pact {
-  constructor({ host, keyPairs }) {
-    this.host = host;
-    this.keyPairs = keyPairs;
+  constructor() {
+  }
+
+  static get host() {
+    return Pact.host;
+  }
+
+  static set host(host) {
+    Pact.host = host;
+  }
+
+  static get keyPairs() {
+    return Pact.keyPairs;
+  }
+
+  static set keyPairs(keyPairs) {
+    Pact.keyPairs = keyPairs;
   }
 
   static async sendCommand({
@@ -14,8 +28,8 @@ export class Pact {
     host = undefined,
     keyPairs = undefined
   }) {
-    const apiHost = host ? host : this.host;
-    const keyPairSets = keyPairs ? keyPairs : this.keyPairs;
+    const apiHost = host ? host : Pact.host;
+    const keyPairSets = keyPairs ? keyPairs : Pact.keyPairs;
 
     if (!apiHost) {
       throw new Error(

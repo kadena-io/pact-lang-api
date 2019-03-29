@@ -1,6 +1,6 @@
 import tweetnacl from 'tweetnacl';
 import { Crypto } from '../src/crypto';
-// import { Pact } from "../src/pact";
+import { Pact } from "../src/pact";
 
 describe.skip('Pact Class', () => {
   beforeAll(() => {

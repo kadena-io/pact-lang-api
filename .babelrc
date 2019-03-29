@@ -1,16 +1,22 @@
 {
   plugins: [
-    "@babel/plugin-transform-regenerator",
-    "@babel/plugin-proposal-object-rest-spread"
+    "@babel/plugin-proposal-object-rest-spread",
+    "@babel/plugin-transform-parameters",
+    [
+      "@babel/plugin-transform-runtime",
+      {
+        regenerator: true
+      }
+    ]
   ],
   presets: [
     [
       '@babel/preset-env',
       {
         targets: {
-          node: 'current',
+          node: 'current'
         }
-      },
+      }
     ]
   ]
 }
