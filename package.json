@@ -1,0 +1,50 @@
+{
+  "name": "@kadena-io/chainweb",
+  "version": "1.0.0",
+  "description": "JS API for Pact Chainweb",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "webpack",
+    "prettier": "prettier --write \"./**/*\"",
+    "lint": "./node_modules/.bin/eslint --fix src/**/* test/**/*.test.js",
+    "test": "jest --coverage"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kadena-io/chainweb-js.git"
+  },
+  "author": "Kadena LLC",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kadena-io/chainweb-js/issues"
+  },
+  "homepage": "https://github.com/kadena-io/chainweb-js#readme",
+  "dependencies": {
+    "blakejs": "^1.1.0",
+    "tweetnacl": "^1.0.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.3.4",
+    "@babel/plugin-proposal-object-rest-spread": "^7.4.0",
+    "@babel/plugin-transform-regenerator": "^7.3.4",
+    "@babel/preset-env": "^7.3.4",
+    "babel-loader": "^8.0.5",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "eslint": "^5.15.1",
+    "jest": "^24.5.0",
+    "jest-date-mock": "^1.0.7",
+    "jest-fetch-mock": "^2.1.1",
+    "prettier": "^1.16.4",
+    "regenerator-transform": "^0.13.4",
+    "uglifyjs-webpack-plugin": "^2.1.2",
+    "webpack": "^4.29.6",
+    "webpack-cli": "^3.2.3"
+  },
+  "jest": {
+    "automock": false,
+    "setupFiles": [
+      "./jest-setup.js",
+      "jest-date-mock"
+    ]
+  }
+}
