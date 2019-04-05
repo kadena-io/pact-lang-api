@@ -1,8 +1,11 @@
 # Pact Javascript API
+
 The Pact Javascript API provides a symple, `fetch()`-style way of calling Pact commands on a Pact server in a typical ES7/await/async style.
 
 ## Pact.sendCommand(commandObj)
+
 Async function that sends a Pact command and returns any data returned by the Pact server, or throws an error on failure.
+
 ```
 const commandObj = {
   command: 'pactDefinition.method',  // name of method from your Pact definitions
@@ -19,13 +22,19 @@ try {
 ```
 
 ## Application-Wide Defaults
+
 ### Default Host
+
 If you'll be sending most or all of your Pact commands to the same server, you can set a default `host` on the static Pact class:
+
 ```
 Pact.host = 'https://0.0.0.0/';
 ```
+
 ### Default Key Pairs
+
 You can also set your default `keyPairs` during a user session:
+
 ```
 Pact.keyPairs = [
   {
@@ -40,7 +49,9 @@ Pact.keyPairs = [
 ```
 
 ## Example
+
 ### Pact Module: `records.pact`
+
 ```
 (module records
   (defschema record
@@ -56,7 +67,9 @@ Pact.keyPairs = [
 ```
 
 ### JavaScript: `records.js`
+
 Where `PACT_HOST` and `KEY_PAIRS` are predefined constants, and `logger.error()` logs errors.
+
 ```
 function getRecordForId(recordId) {
   const pactCommand = {
