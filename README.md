@@ -2,7 +2,17 @@
 
 The Pact Javascript API provides a symple, `fetch()`-style way of calling Pact commands on a Pact server in a typical ES7/await/async style.
 
-## Pact.sendCommand(commandObj)
+## Installation
+
+```
+npm i --save pact-lang-api
+```
+
+## Usage
+
+There is one static, asynchronous method for sending commands and receiving data from a Pact server.
+
+### Pact.sendCommand(commandObj)
 
 Async function that sends a Pact command and returns any data returned by the Pact server, or throws an error on failure.
 
