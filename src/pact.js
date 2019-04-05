@@ -3,25 +3,6 @@ import { Crypto } from './crypto';
 const KEY_PAIR = Crypto.genKeyPair();
 
 export class Pact {
-  constructor() {
-  }
-
-  static get host() {
-    return Pact.host;
-  }
-
-  static set host(host) {
-    Pact.host = host;
-  }
-
-  static get keyPairs() {
-    return Pact.keyPairs;
-  }
-
-  static set keyPairs(keyPairs) {
-    Pact.keyPairs = keyPairs;
-  }
-
   static async sendCommand({
     command,
     data,
@@ -39,7 +20,7 @@ export class Pact {
     if (!command) {
       throw new Error('Pact.sendCommand(): No `command` provided');
     }
-    if (!keyPairs) {
+    if (!keyPairSets) {
       throw new Error(
         'Pact.sendCommand(): No `keyPairs` provided and Pact() not instantiated with `keyPairs`'
       );
@@ -50,7 +31,6 @@ export class Pact {
       code: command,
       data
     });
-    console.log(`Executing Pact command: ${command} with JSON:`, commandJSON);
 
     // Fire a POST to /api/v1/send and parse the response for Command hashes
     const commandResponse = await fetch(`${apiHost}/api/v1/send`, {
@@ -75,7 +55,7 @@ export class Pact {
       listenResponseJSON.response.result.status === 'failure'
     ) {
       throw new Error(
-        `PACT Failure in ${cmd} listen: ${listenResponseJSON.error}`
+        `PACT Failure in ${command} listen: ${listenResponseJSON.error}`
       );
     }
 
@@ -90,21 +70,18 @@ export class Pact {
     const payload = { exec: { code, data } };
 
     const cmd = JSON.stringify({ nonce, payload, address });
-    const signedCommands = Array.isArray(keyPairs)
+
+    const sigs = Array.isArray(keyPairs)
       ? keyPairs.map(kp => Crypto.sign(cmd, kp))
       : [Crypto.sign(cmd, keyPairs)];
-    const sigs = signedCommands.map(signed =>
-      Object({ sig: signed.sig, pubKey: signed.pubKey })
-    );
 
     // Test that all commands have the same hash
     const { hash } = sigs[0];
-    if (sigs.filter(sigs, sig => sig.hash !== hash).length > 0) {
+    if (sigs.filter(s => s.hash !== hash).length > 0) {
       throw new Error(
         'Sigs for different hashes found: ' + JSON.stringify(sigs)
       );
     }
-
     return { cmds: [{ hash, sigs, cmd }] };
   }
 }
