@@ -1,4 +1,5 @@
 # Pact Javascript API
+The Pact Javascript API provides a symple, `fetch()`-style way of calling Pact commands on a Pact server in a typical ES7/await/async style.
 
 ## Pact.sendCommand(commandObj)
 Async function that sends a Pact command and returns any data returned by the Pact server, or throws an error on failure.
@@ -58,16 +59,18 @@ Pact.keyPairs = [
 Where `PACT_HOST` and `KEY_PAIRS` are predefined constants, and `logger.error()` logs errors.
 ```
 function getRecordForId(recordId) {
+  const pactCommand = {
+    command: 'records.read-record-for-id',
+    data: { recordId },
+    host: PACT_HOST,
+    keyPairs: KEY_PAIRS
+  };
+
   try {
-    const record = await Pact.sendCommand({
-      command: 'records.read-record-for-id',
-      data: { recordId },
-      host: PACT_HOST,
-      keyPairs: KEY_PAIRS
-    });
+    const record = await Pact.sendCommand(pactCommand);
     return record;
   } catch(e) {
-    logger.error(e);
+    logger.error(e, pactCommand);
   }
 }
 ```
