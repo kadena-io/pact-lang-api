@@ -40,7 +40,6 @@ describe('Pact Class', () => {
     const expected = mockListenData;
     const actual = await Pact.sendCommand({
       command: 'do-something',
-      data: {},
       host: 'localhost',
       keyPairs: [mockKeyPair]
     });
@@ -53,7 +52,6 @@ describe('Pact Class', () => {
     try {
       await Pact.sendCommand({
         command: 'do-something',
-        data: {},
         keyPairs: [mockKeyPair]
       });
     } catch (e) {
@@ -68,7 +66,6 @@ describe('Pact Class', () => {
     try {
       await Pact.sendCommand({
         command: 'do-something',
-        data: {},
         host: 'localhost'
       });
     } catch (e) {
@@ -82,7 +79,6 @@ describe('Pact Class', () => {
     Pact.keyPairs = undefined;
     try {
       await Pact.sendCommand({
-        data: {},
         host: 'localhost',
         keyPairs: [mockKeyPair]
       });
@@ -104,7 +100,6 @@ describe('Pact Class', () => {
     try {
       await Pact.sendCommand({
         command: 'do-something',
-        data: {},
         host: 'localhost',
         keyPairs: [mockKeyPair]
       });
@@ -136,14 +131,11 @@ describe('Pact Class', () => {
     try {
       await Pact.sendCommand({
         command: 'do-something',
-        data: {},
         host: 'localhost',
         keyPairs: [mockKeyPair]
       });
     } catch (e) {
-      expect(e.toString()).toMatch(
-        'PACT Failure in do-something listen: Some error'
-      );
+      expect(e.toString()).toMatch('PACT Failure in do-something listen: Some error');
     }
   });
 

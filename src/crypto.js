@@ -30,17 +30,15 @@ export class Crypto {
   static sign(msg, keyPair) {
     if (!keyPair.publicKey || !keyPair.secretKey) {
       throw new TypeError(
-        'Invalid KeyPair: expected to find keys of name \'secretKey\' and \'publicKey\': ' +
-          JSON.stringify(keyPair)
+        `Invalid KeyPair: expected to find keys of name 'secretKey' and 'publicKey': ${JSON.stringify(
+          keyPair
+        )}`
       );
     }
     const hashBin = Crypto.hashBin(msg);
     const hash = Crypto.binToHex(hashBin);
     const sig = Crypto.binToHex(
-      tweetnacl.sign.detached(
-        hashBin,
-        Crypto.hexToBin(keyPair.secretKey + keyPair.publicKey)
-      )
+      tweetnacl.sign.detached(hashBin, Crypto.hexToBin(keyPair.secretKey + keyPair.publicKey))
     );
     return { hash, sig, pubKey: keyPair.publicKey };
   }

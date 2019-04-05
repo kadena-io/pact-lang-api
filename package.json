@@ -6,7 +6,7 @@
   "scripts": {
     "build": "webpack",
     "prettier": "prettier --write \"./**/*\"",
-    "lint": "./node_modules/.bin/eslint --fix src/**/* test/**/*.test.js",
+    "lint": "./node_modules/.bin/eslint src/**/* test/**/*.test.js",
     "test": "jest --coverage"
   },
   "repository": {

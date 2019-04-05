@@ -11,6 +11,7 @@ npm i --save pact-lang-api
 ## Usage
 
 There is one static, asynchronous method for sending commands and receiving data from a Pact server.
+Be sure to send Pact commands wrapped in parentheses, with quotes around arguments. Use `JSON.stringify()` for best results.
 
 ### Pact.sendCommand(commandObj)
 
@@ -18,8 +19,8 @@ Async function that sends a Pact command and returns any data returned by the Pa
 
 ```
 const commandObj = {
-  command: 'pactDefinition.method',  // name of method from your Pact definitions
-  data: {}, // any data to send to the Pact command
+  command: '(pactDefinition.method "arg1" "arg2")',  // name of method and arguments from your Pact definitions
+  envData: {}, // any envData to send with the Pact command
   host: 'https://0.0.0.0/',  // URL of the Pact server to send the command to; optional if Pact.host is set
   keyPairs: [keyPairA, keyPairB]  // Array of keyPairs to send with the command; optional if Pact.keyPairs is set
 };
@@ -83,8 +84,7 @@ Where `PACT_HOST` and `KEY_PAIRS` are predefined constants, and `logger.error()`
 ```
 function getRecordForId(recordId) {
   const pactCommand = {
-    command: 'records.read-record-for-id',
-    data: { recordId },
+    command: (`records.read-record-for-id ${JSON.stringify(recordId)}`),
     host: PACT_HOST,
     keyPairs: KEY_PAIRS
   };

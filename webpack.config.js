@@ -1,17 +1,17 @@
-const path = require("path");
-const webpack = require("webpack");
-const UglifyJsPlugin = require("uglifyjs-webpack-plugin");
+const path = require('path');
+const webpack = require('webpack');
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 
 module.exports = {
-  entry: path.resolve(__dirname, "src/index.js"),
+  entry: path.resolve(__dirname, 'src/index.js'),
   output: {
-    path: path.resolve(__dirname, "dist"),
-    filename: "index.js",
-    publicPath: "/"
+    path: path.resolve(__dirname, 'dist'),
+    filename: 'index.js',
+    publicPath: '/'
   },
   devServer: {
     headers: {
-      "Access-Control-Allow-Origin": "*"
+      'Access-Control-Allow-Origin': '*'
     },
     historyApiFallback: true
   },
@@ -19,12 +19,12 @@ module.exports = {
     rules: [
       {
         test: /\.js$/,
-        exclude: resolve("node_modules"),
+        exclude: resolve('node_modules'),
         use: [
           {
-            loader: "babel-loader",
+            loader: 'babel-loader',
             options: {
-              presets: [["@babel/preset-env"]]
+              presets: [['@babel/preset-env']]
             }
           }
         ]
@@ -41,7 +41,7 @@ module.exports = {
     ]
   },
   resolve: {
-    extensions: [".js"]
+    extensions: ['.js']
   },
-  devtool: "source-map"
+  devtool: 'source-map'
 };
