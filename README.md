@@ -84,7 +84,7 @@ Where `PACT_HOST` and `KEY_PAIRS` are predefined constants, and `logger.error()`
 ```
 function getRecordForId(recordId) {
   const pactCommand = {
-    command: (`records.read-record-for-id ${JSON.stringify(recordId)}`),
+    command: `(records.read-record-for-id ${JSON.stringify(recordId)})`,
     host: PACT_HOST,
     keyPairs: KEY_PAIRS
   };
