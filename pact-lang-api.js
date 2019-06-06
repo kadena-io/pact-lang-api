@@ -212,12 +212,18 @@ var enforceArray = function(val,msg) {
   }
 }
 
-
 /**
  * Make a full 'send' endpoint exec command. See 'prepareExecCmd' for parameters.
  */
 var simpleExecCommand = function(keyPairs, nonce, pactCode, envData, meta) {
   return mkPublicSend(prepareExecCmd(keyPairs, nonce, pactCode, envData, meta));
+};
+
+/**
+ * Make a full 'local' endpoint exec command. See 'prepareExecCmd' for parameters.
+ */
+var simpleLocalCommand = function(keyPairs, nonce, pactCode, envData, meta) {
+  return prepareExecCmd(keyPairs, nonce, pactCode, envData, meta);
 };
 
 var unique = function(arr) {
@@ -329,6 +335,7 @@ module.exports = {
   simple: {
     exec: {
       createCommand: simpleExecCommand,
+      createLocalCommand: simpleLocalCommand,
       createPollRequest: simplePollRequestFromExec,
       createListenRequest: simpleListenRequestFromExec
     }
