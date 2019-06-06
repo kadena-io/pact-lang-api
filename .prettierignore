@@ -1,9 +1,0 @@
-node_modules
-.*
-*.html
-*.conf
-*.sh
-__snapshots__
-log
-coverage
-dist
