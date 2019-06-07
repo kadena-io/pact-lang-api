@@ -317,7 +317,7 @@ var mkReq = function (cmd) {
 };
 
 /**
- * Sends Pact command to running Pact server and retrieves tx result.
+ * Sends Pact command to a running Pact server and retrieves tx result.
  * @param {Object}
  * @property pactCode {string} - pact code to execute
  * @property keyPairs {array or object} - array or single ED25519 keypair
@@ -328,13 +328,35 @@ var mkReq = function (cmd) {
  * @return {object} - tx result received from pact server.
  */
 const sendCommand = async function ({pactCode, keyPairs, nonce=new Date().toISOString(), envData={}, meta=mkMeta("","",0,0), apiHost}) {
-  const reqParams = ["pactCode", "keyPairs", "meta", "apiHost"]
+  const reqParams = ["pactCode", "keyPairs", "apiHost"]
   reqParams.forEach(arg => {
-    if (!arguments[0][arg])  throw new Error (`Pact.sendCommand(): No ${arg} provided`)
+    if (!arguments[0][arg]) throw new Error (`Pact.sendCommand(): No ${arg} provided`)
   })
   const cmd = simpleExecCommand(keyPairs, nonce, pactCode, envData, meta);
   const res = await fetch(`${apiHost}/api/v1/send`, mkReq(cmd));
   const txRes = await fetch(`${apiHost}/api/v1/listen`, mkReq(simpleListenRequestFromExec(cmd)));
+  const tx = await txRes.json();
+  return tx.result;
+};
+
+/**
+ * Sends Local Pact command to a running Pact server and retrieves local tx result.
+ * @param {Object}
+ * @property pactCode {string} - pact code to execute
+ * @property keyPairs {array or object} - array or single ED25519 keypair
+ * @property nonce {string} - nonce value, default at current time
+ * @property envData {object} - JSON message data for command, default at empty obj
+ * @property meta {object} - meta information, see mkMeta
+ * @property apiHost {string} - host running Pact server
+ * @return {object} - tx result received from pact server.
+ */
+const sendLocalCommand = async function ({pactCode, keyPairs, nonce=new Date().toISOString(), envData={}, meta=mkMeta("","",0,0), apiHost}) {
+  const reqParams = ["pactCode", "keyPairs", "apiHost"]
+  reqParams.forEach(arg => {
+    if (!arguments[0][arg])  throw new Error (`Pact.sendCommand(): No ${arg} provided`)
+  })
+  const cmd = simpleLocalCommand(keyPairs, nonce, pactCode, envData, meta);
+  const txRes = await fetch(`${apiHost}/api/v1/local`, mkReq(cmd));
   const tx = await txRes.json();
   return tx.result;
 };
@@ -366,5 +388,6 @@ module.exports = {
       createListenRequest: simpleListenRequestFromExec
     }
   },
-  sendCommand: sendCommand
+  sendCommand: sendCommand,
+  sendLocalCommand: sendLocalCommand
 };
