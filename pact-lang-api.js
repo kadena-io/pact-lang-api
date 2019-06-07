@@ -52,7 +52,7 @@ var hash = function(s) {
  */
 var base64UrlEncode = function(s) {
   return base64url.escape(base64url.encode(s));
-}
+};
 
 /**
  * Generate a random ED25519 keypair.
@@ -275,7 +275,7 @@ var simpleListenRequestFromExec = function(execMsg) {
   } else {
     rks = unique(cmds.map(function(v){return v.hash;}));
   }
-  return {"requestKey": rks[0]};
+  return {"listen": rks[0]};
 };
 
 /**
@@ -283,9 +283,7 @@ var simpleListenRequestFromExec = function(execMsg) {
  * Encases arguments in parens and intercalates with a space.
  */
 var mkExp = function(pgmName) {
-  if (typeof pgmName !== 'string') {
-    throw new TypeError('pgmName must be a string: ' + JSON.stringify(pgmName));
-  }
+  enforceType(pgmName, "string", "pgmName")
   return '(' + pgmName + ' ' + Array.prototype.slice.call(arguments, 1).map(JSON.stringify).join(' ') + ')';
 };
 
@@ -298,20 +296,48 @@ var mkExp = function(pgmName) {
  * @return {object} of arguments, type-checked and properly named.
  */
 var mkMeta = function (sender, chainId, gasPrice, gasLimit) {
-  if (typeof sender !== 'string' ) {
-    throw new TypeError('sender must be a string: ' + JSON.stringify(sender));
-  }
-  if (typeof chainId !== 'string') {
-    throw new TypeError('chainId must be a string: ' + JSON.stringify(chainId));
-  }
-  if (typeof gasPrice !== 'number' ) {
-    throw new TypeError('gasPrice must be a number: ' + JSON.stringify(gasPrice));
-  }
-  if (typeof gasLimit !== 'number' ) {
-    throw new TypeError('gasLimit must be a number: ' + JSON.stringify(gasLimit));
-  }
+  enforceType(sender, "string", "sender");
+  enforceType(chainId, "string", "chainId");
+  enforceType(gasPrice, "number", "gasPrice");
+  enforceType(gasPrice, "number", "gasLimit");
   return {"gasLimit":gasLimit, "chainId":chainId, "gasPrice":gasPrice, "sender":sender}
-}
+};
+
+/**
+ * Formats ExecCmd into api request object
+ */
+var mkReq = function (cmd) {
+  return {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    method: 'POST',
+    body: JSON.stringify(cmd),
+  }
+};
+
+/**
+ * Sends Pact command to running Pact server and retrieves tx result.
+ * @param {Object}
+ * @property pactCode {string} - pact code to execute
+ * @property keyPairs {array or object} - array or single ED25519 keypair
+ * @property nonce {string} - nonce value, default at current time
+ * @property envData {object} - JSON message data for command, default at empty obj
+ * @property meta {object} - meta information, see mkMeta
+ * @property apiHost {string} - host running Pact server
+ * @return {object} - tx result received from pact server.
+ */
+const sendCommand = async function ({pactCode, keyPairs, nonce=new Date().toISOString(), envData={}, meta=mkMeta("","",0,0), apiHost}) {
+  const reqParams = ["pactCode", "keyPairs", "meta", "apiHost"]
+  reqParams.forEach(arg => {
+    if (!arguments[0][arg])  throw new Error (`Pact.sendCommand(): No ${arg} provided`)
+  })
+  const cmd = simpleExecCommand(keyPairs, nonce, pactCode, envData, meta);
+  const res = await fetch(`${apiHost}/api/v1/send`, mkReq(cmd));
+  const txRes = await fetch(`${apiHost}/api/v1/listen`, mkReq(simpleListenRequestFromExec(cmd)));
+  const tx = await txRes.json();
+  return tx.result;
+};
 
 module.exports = {
   crypto: {
@@ -339,5 +365,6 @@ module.exports = {
       createPollRequest: simplePollRequestFromExec,
       createListenRequest: simpleListenRequestFromExec
     }
-  }
+  },
+  sendCommand: sendCommand
 };
