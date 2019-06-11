@@ -6,7 +6,7 @@
 
 const blake = require('blakejs');
 const nacl = require('tweetnacl');
-const base64url = require('base64-url')
+const base64url = require('base64-url');
 
 /**
  * Convert binary to hex.
@@ -21,7 +21,7 @@ var binToHex = function(s) {
   }
 
   return Buffer.from(s).toString('hex');
-};
+}
 
 /**
  * Convert hex string to binary.
@@ -31,28 +31,28 @@ var binToHex = function(s) {
 var hexToBin = function(h) {
   if (typeof h !== 'string') { throw new TypeError("Expected string: " + h); }
   return new Uint8Array(Buffer.from(h,'hex'));
-};
+}
 
 /**
  * Perform blake2b256 hashing.
  */
 var hashBin = function(s) {
   return blake.blake2b(s, null, 32);
-};
+}
 
 /**
  * Perform blake2b256 hashing, encoded as unescaped base64url.
  */
 var hash = function(s) {
   return base64UrlEncode(hashBin(s));
-};
+}
 
 /**
  * Hash string as unescaped base64url.
  */
 var base64UrlEncode = function(s) {
   return base64url.escape(base64url.encode(s));
-};
+}
 
 /**
  * Generate a random ED25519 keypair.
@@ -63,7 +63,7 @@ var genKeyPair = function() {
   var pubKey = binToHex(kp.publicKey);
   var secKey = binToHex(kp.secretKey).slice(0,64);
   return {"publicKey": pubKey, "secretKey": secKey};
-};
+}
 
 var toTweetNaclSecretKey = function(keyPair) {
   if (!keyPair.hasOwnProperty("publicKey") || !keyPair.hasOwnProperty("secretKey") ) {
@@ -72,7 +72,7 @@ var toTweetNaclSecretKey = function(keyPair) {
      JSON.stringify(keyPair));
   }
   return hexToBin(keyPair.secretKey + keyPair.publicKey);
-};
+}
 
 /**
  * Sign data using key pair.
@@ -88,14 +88,14 @@ var sign = function(msg, keyPair) {
   var hsh = base64UrlEncode(hshBin);
   var sigBin = nacl.sign.detached(hshBin, toTweetNaclSecretKey(keyPair));
   return {"hash": hsh, "sig": binToHex(sigBin), "pubKey":keyPair.publicKey};
-};
+}
 
 var pullSigAndPubKey = function(s) {
   if (!s.hasOwnProperty("pubKey") || !s.hasOwnProperty("sig")) {
     throw new TypeError("Expected to find keys of name 'sig' and 'pubKey' in " + JSON.stringify(s));
   }
   return {"sig":s.sig, "pubKey":s.pubKey};
-};
+}
 
 
 var pullSig = function(s) {
@@ -103,14 +103,14 @@ var pullSig = function(s) {
     throw new TypeError("Expected to find keys of name 'sig' in " + JSON.stringify(s));
   }
   return {"sig":s.sig};
-};
+}
 
 var pullPubKeyAndAddr = function(s) {
   if (!s.hasOwnProperty("pubKey")) {
     throw new TypeError("Expected to find keys of name 'pubKey' in " + JSON.stringify(s));
   }
   return {"pubKey":s.pubKey, "addr":s.pubKey, "scheme": "ED25519"};
-};
+}
 
 
 var pullAndCheckHashs = function(sigs) {
@@ -122,7 +122,7 @@ var pullAndCheckHashs = function(sigs) {
     }
   }
   return hsh;
-};
+}
 
 /**
  * Prepare an ExecMsg pact command for use in send or local execution.
@@ -155,7 +155,7 @@ var prepareExecCmd = function(keyPairs, nonce, pactCode, envData, meta) {
   var cmd = JSON.stringify(cmdJSON);
   var sigs = kpArray.map(function(kp) { return sign(cmd, kp); });
   return mkSingleCmd(sigs,cmd);
-};
+}
 
 /**
  * Makes a single command given signed data.
@@ -169,7 +169,7 @@ var mkSingleCmd = function(sigs, cmd) {
   return { "hash": pullAndCheckHashs(sigs)
            , "sigs": sigs.map(pullSig)
            , "cmd": cmd };
-};
+}
 
 /**
  * Makes outer wrapper for a 'send' endpoint.
@@ -177,7 +177,7 @@ var mkSingleCmd = function(sigs, cmd) {
  */
 var mkPublicSend = function(cmds) {
   return { "cmds": asArray(cmds) };
-};
+}
 
 /**
  * Make an ED25519 "signer" array element for inclusion in a Pact payload.
@@ -217,21 +217,14 @@ var enforceArray = function(val,msg) {
  */
 var simpleExecCommand = function(keyPairs, nonce, pactCode, envData, meta) {
   return mkPublicSend(prepareExecCmd(keyPairs, nonce, pactCode, envData, meta));
-};
-
-/**
- * Make a full 'local' endpoint exec command. See 'prepareExecCmd' for parameters.
- */
-var simpleLocalCommand = function(keyPairs, nonce, pactCode, envData, meta) {
-  return prepareExecCmd(keyPairs, nonce, pactCode, envData, meta);
-};
+}
 
 var unique = function(arr) {
   var n = {},r=[];
   for(var i = 0; i < arr.length; i++)
   var hsh = eckHashs(sigs);
   return mkPublicSend({"hash": hsh, "sigs":sigs.map(pullSigAndPubKey), "cmd":cmd});
-};
+}
 
 var unique = function(arr) {
   var n = {},r=[];
@@ -244,7 +237,7 @@ var unique = function(arr) {
     }
   }
   return r;
-};
+}
 
 /**
  * Given an exec 'send' message, prepare a message for 'poll' endpoint.
@@ -260,7 +253,7 @@ var simplePollRequestFromExec = function(execMsg) {
     rks = unique(cmds.map(function(v){return v.hash;}));
   }
   return {"requestKeys": rks};
-};
+}
 
 /**
  * Given an exec 'send' message, prepare a message for 'listen' endpoint.
@@ -276,7 +269,7 @@ var simpleListenRequestFromExec = function(execMsg) {
     rks = unique(cmds.map(function(v){return v.hash;}));
   }
   return {"listen": rks[0]};
-};
+}
 
 /**
  * Variadic function to form a lisp s-expression application.
@@ -285,7 +278,7 @@ var simpleListenRequestFromExec = function(execMsg) {
 var mkExp = function(pgmName) {
   enforceType(pgmName, "string", "pgmName")
   return '(' + pgmName + ' ' + Array.prototype.slice.call(arguments, 1).map(JSON.stringify).join(' ') + ')';
-};
+}
 
 /**
  * Prepare a chainweb-style meta payload.
@@ -300,8 +293,8 @@ var mkMeta = function (sender, chainId, gasPrice, gasLimit) {
   enforceType(chainId, "string", "chainId");
   enforceType(gasPrice, "number", "gasPrice");
   enforceType(gasPrice, "number", "gasLimit");
-  return {"gasLimit":gasLimit, "chainId":chainId, "gasPrice":gasPrice, "sender":sender}
-};
+  return { "gasLimit":gasLimit, "chainId":chainId, "gasPrice":gasPrice, "sender":sender }
+}
 
 /**
  * Formats ExecCmd into api request object
@@ -314,7 +307,7 @@ var mkReq = function (cmd) {
     method: 'POST',
     body: JSON.stringify(cmd),
   }
-};
+}
 
 /**
  * Sends Pact command to a running Pact server and retrieves tx result.
@@ -325,19 +318,18 @@ var mkReq = function (cmd) {
  * @property envData {object} - JSON message data for command, default at empty obj
  * @property meta {object} - meta information, see mkMeta
  * @property apiHost {string} - host running Pact server
- * @return {object} - tx result received from pact server.
+ * @return {object} - Request key of the tx received from pact server.
  */
-const sendCommand = async function ({pactCode, keyPairs, nonce=new Date().toISOString(), envData={}, meta=mkMeta("","",0,0), apiHost}) {
+const fetchSend = async function ({pactCode, keyPairs, nonce=new Date().toISOString(), envData={}, meta=mkMeta("","",0,0), apiHost}) {
   const reqParams = ["pactCode", "keyPairs", "apiHost"]
   reqParams.forEach(arg => {
     if (!arguments[0][arg]) throw new Error (`Pact.sendCommand(): No ${arg} provided`)
   })
   const cmd = simpleExecCommand(keyPairs, nonce, pactCode, envData, meta);
-  const res = await fetch(`${apiHost}/api/v1/send`, mkReq(cmd));
-  const txRes = await fetch(`${apiHost}/api/v1/listen`, mkReq(simpleListenRequestFromExec(cmd)));
+  const txRes = await fetch(`${apiHost}/api/v1/send`, mkReq(cmd));
   const tx = await txRes.json();
-  return tx.result;
-};
+  return tx;
+}
 
 /**
  * Sends Local Pact command to a running Pact server and retrieves local tx result.
@@ -350,16 +342,46 @@ const sendCommand = async function ({pactCode, keyPairs, nonce=new Date().toISOS
  * @property apiHost {string} - host running Pact server
  * @return {object} - tx result received from pact server.
  */
-const sendLocalCommand = async function ({pactCode, keyPairs, nonce=new Date().toISOString(), envData={}, meta=mkMeta("","",0,0), apiHost}) {
+const fetchLocal = async function ({pactCode, keyPairs, nonce=new Date().toISOString(), envData={}, meta=mkMeta("","",0,0), apiHost}) {
   const reqParams = ["pactCode", "keyPairs", "apiHost"]
   reqParams.forEach(arg => {
     if (!arguments[0][arg])  throw new Error (`Pact.sendCommand(): No ${arg} provided`)
   })
-  const cmd = simpleLocalCommand(keyPairs, nonce, pactCode, envData, meta);
+  const cmd = prepareExecCmd(keyPairs, nonce, pactCode, envData, meta);
   const txRes = await fetch(`${apiHost}/api/v1/local`, mkReq(cmd));
   const tx = await txRes.json();
   return tx.result;
-};
+}
+
+/**
+ * Request poll Pact command to a running Pact server and retrieves tx result.
+ * @param {Object}
+ * @property rks {array} - Array of request keys of tx to poll.
+ * @property apiHost {string} - host running Pact server
+ * @return {object} - Array of tx request keys and tx results from pact server.
+*/
+const fetchPoll = async function ({rks, apiHost}) {
+  const cmd = { "requestKeys": rks }
+  const res = await fetch(`${apiHost}/api/v1/poll`, mkReq(cmd));
+  const resJSON = await res.json();
+  return Object.values(resJSON).map(res => {
+    return { reqKey: res.reqKey, result: res.result };
+  })
+}
+
+/**
+ * Request listen Pact command to a running Pact server and retrieves tx result.
+ * @param {Object}
+ * @property rk {string} - reqest key of tx to listen.
+ * @property apiHost {string} - host running Pact server
+ * @return {object} - Object containing tx result from pact server
+*/
+const fetchListen = async function ({rk, apiHost}) {
+  const cmd = { "listen": rk }
+  const res = await fetch(`${apiHost}/api/v1/listen`, mkReq(cmd));
+  const resJSON = await res.json();
+  return resJSON.result;
+}
 
 module.exports = {
   crypto: {
@@ -374,7 +396,7 @@ module.exports = {
   api: {
     prepareExecCmd: prepareExecCmd,
     mkSingleCmd: mkSingleCmd,
-    mkPublicSend: mkPublicSend,
+    mkPublicSend: mkPublicSend
   },
   lang: {
     mkExp: mkExp,
@@ -383,11 +405,15 @@ module.exports = {
   simple: {
     exec: {
       createCommand: simpleExecCommand,
-      createLocalCommand: simpleLocalCommand,
+      createLocalCommand: prepareExecCmd,
       createPollRequest: simplePollRequestFromExec,
       createListenRequest: simpleListenRequestFromExec
     }
   },
-  sendCommand: sendCommand,
-  sendLocalCommand: sendLocalCommand
-};
+  fetch: {
+    send: fetchSend,
+    local: fetchLocal,
+    poll: fetchPoll,
+    listen: fetchListen
+  }
+}
