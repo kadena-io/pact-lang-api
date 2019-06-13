@@ -310,16 +310,21 @@ var mkReq = function (cmd) {
 }
 
 /**
- * Sends Pact command to a running Pact server and retrieves tx result.
- * @param {Object}
+ * A Command Object to be received to send cmd to Pact server.
+ * @typedef {Object} execCmd
  * @property pactCode {string} - pact code to execute
  * @property keyPairs {array or object} - array or single ED25519 keypair
  * @property nonce {string} - nonce value, default at current time
  * @property envData {object} - JSON message data for command, default at empty obj
  * @property meta {object} - meta information, see mkMeta
  * @property apiHost {string} - host running Pact server
- * @return {object} - Request key of the tx received from pact server.
  */
+
+ /**
+  * Sends Pact command to a running Pact server and retrieves the tx's request key.
+  * @param {execCmd} sendCmd
+  * @return {object} - Request key of the tx received from pact server.
+  */
 const fetchSend = async function ({pactCode, keyPairs, nonce=new Date().toISOString(), envData={}, meta=mkMeta("","",0,0), apiHost}) {
   const reqParams = ["pactCode", "keyPairs", "apiHost"]
   reqParams.forEach(arg => {
@@ -333,13 +338,7 @@ const fetchSend = async function ({pactCode, keyPairs, nonce=new Date().toISOStr
 
 /**
  * Sends Local Pact command to a running Pact server and retrieves local tx result.
- * @param {Object}
- * @property pactCode {string} - pact code to execute
- * @property keyPairs {array or object} - array or single ED25519 keypair
- * @property nonce {string} - nonce value, default at current time
- * @property envData {object} - JSON message data for command, default at empty obj
- * @property meta {object} - meta information, see mkMeta
- * @property apiHost {string} - host running Pact server
+ * @param {execCmd} localCmd
  * @return {object} - tx result received from pact server.
  */
 const fetchLocal = async function ({pactCode, keyPairs, nonce=new Date().toISOString(), envData={}, meta=mkMeta("","",0,0), apiHost}) {
@@ -355,7 +354,7 @@ const fetchLocal = async function ({pactCode, keyPairs, nonce=new Date().toISOSt
 
 /**
  * Request poll Pact command to a running Pact server and retrieves tx result.
- * @param {Object}
+ * @param {Object} pollCmd
  * @property rks {array} - Array of request keys of tx to poll.
  * @property apiHost {string} - host running Pact server
  * @return {object} - Array of tx request keys and tx results from pact server.
@@ -371,7 +370,7 @@ const fetchPoll = async function ({rks, apiHost}) {
 
 /**
  * Request listen Pact command to a running Pact server and retrieves tx result.
- * @param {Object}
+ * @param {Object} listenCmd
  * @property rk {string} - reqest key of tx to listen.
  * @property apiHost {string} - host running Pact server
  * @return {object} - Object containing tx result from pact server
