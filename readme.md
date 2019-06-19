@@ -76,13 +76,13 @@ Pact.fetch.send([<execCmd:object>], <apiHost:string>) -> {"requestKeys": [...]}
   ex:
     const cmds = [{
                     keyPairs: KEY_PAIR,
-                    pactCode: "todos.delete-todos "id-1""
+                    pactCode: 'todos.delete-todos "id-1"'
                   },{
                     keyPairs: KEY_PAIR,
-                    pactCode: "todos.delete-todos "id-2""
+                    pactCode: 'todos.delete-todos "id-2"'
                   },{
                     keyPairs: KEY_PAIR,
-                    pactCode: "todos.delete-todos "id-3""
+                    pactCode: 'todos.delete-todos "id-3"'
                   }]
 
     Pact.fetch.send(cmds, API_HOST) -> { requestKeys: [
@@ -114,10 +114,9 @@ Pact.fetch.poll({requestKeys: ["..."]}, <apiHost:string>) -> [{requestKey: "..."
 
   ex:
     const cmd = { requestKeys: [ "6ue-lrwXaLcDyxDwJ1nuLzOfFtnQ2TaF0_Or_X0KnbE",
-                                 "P7qDsrt3evfEjtlQAW_b1ZPS7LpAZynCO8wx99hc5i0",
-                                 "qqhiEAuerIBrkZArSXPZxybQLzkTzHcwiB4ZrRU7FJM" ]}
+                                 "P7qDsrt3evfEjtlQAW_b1ZPS7LpAZynCO8wx99hc5i0" ]}
 
-    Pact.fetch.poll(cmd, API_HOST) -> [{ reqKey: "qqhiEAuerIBrkZArSXPZxybQLzkTzHcwiB4ZrRU7FJM",
+    Pact.fetch.poll(cmd, API_HOST) -> [{ reqKey: "6ue-lrwXaLcDyxDwJ1nuLzOfFtnQ2TaF0_Or_X0KnbE",
                                          result: {
                                            status: "success",
                                            data: "Write succeeded"
