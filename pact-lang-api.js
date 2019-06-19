@@ -385,7 +385,6 @@ var mkReq = function(cmd) {
  */
 
 /**
-<<<<<<< HEAD
  * Sends Pact command to a running Pact server and retrieves tx result.
  * @param {[execCmd] or execCmd} sendCmd cmd or a list of cmd's to execute
  * @param {string} apiHost host running Pact server
@@ -395,48 +394,18 @@ const fetchSend = async function(sendCmd, apiHost){
   if (!apiHost)  throw new Error(`Pact.fetch.send(): No apiHost provided`);
   const sendCmds = asArray(sendCmd).map(cmd => prepareExecCmd(cmd.keyPairs, cmd.nonce, cmd.pactCode, cmd.envData, cmd.meta));
   const txRes = await fetch(`${apiHost}/api/v1/send`, mkReq(mkPublicSend(sendCmds)));
-=======
- * A Command Object to be received to send cmd to Pact server.
- * @typedef {Object} execCmd
- * @property pactCode {string} - pact code to execute
- * @property keyPairs {array or object} - array or single ED25519 keypair
- * @property nonce {string} - nonce value, default at current time
- * @property envData {object} - JSON message data for command, default at empty obj
- * @property meta {object} - meta information, see mkMeta
- * @property apiHost {string} - host running Pact server
- */
-
- /**
-  * Sends Pact command to a running Pact server and retrieves the tx's request key.
-  * @param {execCmd} sendCmd
-  * @return {object} - Request key of the tx received from pact server.
-  */
-const fetchSend = async function ({pactCode, keyPairs, nonce=new Date().toISOString(), envData={}, meta=mkMeta("","",0,0), apiHost}) {
-  const reqParams = ["pactCode", "keyPairs", "apiHost"]
-  reqParams.forEach(arg => {
-    if (!arguments[0][arg]) throw new Error (`Pact.sendCommand(): No ${arg} provided`)
-  })
-  const cmd = simpleExecCommand(keyPairs, nonce, pactCode, envData, meta);
-  const txRes = await fetch(`${apiHost}/api/v1/send`, mkReq(cmd));
->>>>>>> b4aa797beec41087871489310786570c91999f08
   const tx = await txRes.json();
   return tx;
 };
 
 /**
-<<<<<<< HEAD
  * Sends Local Pact command to a local Pact server and retrieves local tx result.
  * @param {execCmd} localCmd a single cmd to execute locally
  * @param {string} apiHost host running Pact server
  * @return {object} tx result received from pact server.
-=======
- * Sends Local Pact command to a running Pact server and retrieves local tx result.
- * @param {execCmd} localCmd
- * @return {object} - tx result received from pact server.
->>>>>>> b4aa797beec41087871489310786570c91999f08
  */
 const fetchLocal = async function(localCmd, apiHost) {
-  if (!apiHost)  throw new Error(`Pact.fetch.send(): No apiHost provided`);
+  if (!apiHost)  throw new Error(`Pact.fetch.local(): No apiHost provided`);
   const {keyPairs, nonce, pactCode, envData, meta} = localCmd
   const cmd = prepareExecCmd(keyPairs, nonce, pactCode, envData, meta);
   const txRes = await fetch(`${apiHost}/api/v1/local`, mkReq(cmd));
@@ -446,24 +415,13 @@ const fetchLocal = async function(localCmd, apiHost) {
 
 /**
  * Request poll Pact command to a running Pact server and retrieves tx result.
-<<<<<<< HEAD
  * @param {{requestKeys: [<rk:string>]}} pollCmd request Keys of txs to poll.
  * @param {string} apiHost host running Pact server
  * @return {object} Array of tx request keys and tx results from pact server.
  */
 const fetchPoll = async function(pollCmd, apiHost) {
-  if (!apiHost)  throw new Error(`Pact.fetch.send(): No apiHost provided`);
+  if (!apiHost)  throw new Error(`Pact.fetch.poll(): No apiHost provided`);
   const res = await fetch(`${apiHost}/api/v1/poll`, mkReq(pollCmd));
-=======
- * @param {Object} pollCmd
- * @property rks {array} - Array of request keys of tx to poll.
- * @property apiHost {string} - host running Pact server
- * @return {object} - Array of tx request keys and tx results from pact server.
-*/
-const fetchPoll = async function ({rks, apiHost}) {
-  const cmd = { "requestKeys": rks }
-  const res = await fetch(`${apiHost}/api/v1/poll`, mkReq(cmd));
->>>>>>> b4aa797beec41087871489310786570c91999f08
   const resJSON = await res.json();
   return Object.values(resJSON).map(res => {
     return { reqKey: res.reqKey, result: res.result };
@@ -472,24 +430,13 @@ const fetchPoll = async function ({rks, apiHost}) {
 
 /**
  * Request listen Pact command to a running Pact server and retrieves tx result.
-<<<<<<< HEAD
  * @param {{listenCmd: <rk:string>}} listenCmd reqest key of tx to listen.
  * @param {string} apiHost host running Pact server
  * @return {object} Object containing tx result from pact server
  */
 const fetchListen = async function(listenCmd, apiHost) {
-  if (!apiHost)  throw new Error(`Pact.fetch.send(): No apiHost provided`);
+  if (!apiHost)  throw new Error(`Pact.fetch.listen(): No apiHost provided`);
   const res = await fetch(`${apiHost}/api/v1/listen`, mkReq(listenCmd));
-=======
- * @param {Object} listenCmd
- * @property rk {string} - reqest key of tx to listen.
- * @property apiHost {string} - host running Pact server
- * @return {object} - Object containing tx result from pact server
-*/
-const fetchListen = async function ({rk, apiHost}) {
-  const cmd = { "listen": rk }
-  const res = await fetch(`${apiHost}/api/v1/listen`, mkReq(cmd));
->>>>>>> b4aa797beec41087871489310786570c91999f08
   const resJSON = await res.json();
   return resJSON.result;
 };
