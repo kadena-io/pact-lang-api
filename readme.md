@@ -85,10 +85,12 @@ Pact.fetch.send([<execCmd:object>], <apiHost:string>) -> {"requestKeys": [...]}
                     pactCode: 'todos.delete-todos "id-3"'
                   }]
 
-    Pact.fetch.send(cmds, API_HOST) -> { requestKeys: [
-                                          "6ue-lrwXaLcDyxDwJ1nuLzOfFtnQ2TaF0_Or_X0KnbE",
-                                          "P7qDsrt3evfEjtlQAW_b1ZPS7LpAZynCO8wx99hc5i0",
-                                          "qqhiEAuerIBrkZArSXPZxybQLzkTzHcwiB4ZrRU7FJM" ]}
+    Pact.fetch.send(cmds, API_HOST)
+
+    //Returns the following as a Promise Value
+    { requestKeys: [ "6ue-lrwXaLcDyxDwJ1nuLzOfFtnQ2TaF0_Or_X0KnbE",
+                     "P7qDsrt3evfEjtlQAW_b1ZPS7LpAZynCO8wx99hc5i0",
+                     "qqhiEAuerIBrkZArSXPZxybQLzkTzHcwiB4ZrRU7FJM" ]}
 ```
 ```
 ## Make API request to execute a single command in the local server and retrieve the result of the tx. (Used to execute commands that read DB)
@@ -100,7 +102,9 @@ Pact.fetch.local(<execCmd:object>, <apiHost:string>) -> {result}
         pactCode: `(todos.read-todos)`
       };
 
-    Pact.fetch.local(cmd, API_HOST) ->
+    Pact.fetch.local(cmd, API_HOST)
+
+    //Returns the following as a Promise Value
     { status: "success",
        data: [{ id: "id-1"
                 title: "wash"
@@ -116,18 +120,21 @@ Pact.fetch.poll({requestKeys: ["..."]}, <apiHost:string>) -> [{requestKey: "..."
     const cmd = { requestKeys: [ "6ue-lrwXaLcDyxDwJ1nuLzOfFtnQ2TaF0_Or_X0KnbE",
                                  "P7qDsrt3evfEjtlQAW_b1ZPS7LpAZynCO8wx99hc5i0" ]}
 
-    Pact.fetch.poll(cmd, API_HOST) -> [{ reqKey: "6ue-lrwXaLcDyxDwJ1nuLzOfFtnQ2TaF0_Or_X0KnbE",
-                                         result: {
-                                           status: "success",
-                                           data: "Write succeeded"
-                                         }
-                                       },
-                                       { reqKey: "P7qDsrt3evfEjtlQAW_b1ZPS7LpAZynCO8wx99hc5i0",
-                                         result: {
-                                           status: "success",
-                                           data: "Write succeeded"
-                                         }
-                                       }]
+    Pact.fetch.poll(cmd, API_HOST)
+
+    //Returns the following as a Promise Value
+    [{ reqKey: "6ue-lrwXaLcDyxDwJ1nuLzOfFtnQ2TaF0_Or_X0KnbE",
+       result: {
+         status: "success",
+         data: "Write succeeded"
+       }
+     },
+     { reqKey: "P7qDsrt3evfEjtlQAW_b1ZPS7LpAZynCO8wx99hc5i0",
+       result: {
+         status: "success",
+         data: "Write succeeded"
+       }
+     }]
 ```
 ```
 ## Make API request to retrieve result of a tx with a request key.
@@ -136,8 +143,11 @@ Pact.fetch.listen({listen: "..."}, <apiHost:string>) -> {status: "...", data: ".
   ex:
     const cmd = { listen: "6ue-lrwXaLcDyxDwJ1nuLzOfFtnQ2TaF0_Or_X0KnbE" }
 
-    Pact.fetch.listen(cmd, API_HOST) -> { status: "success",
-                                          data: "Write succeeded" }
+    Pact.fetch.listen(cmd, API_HOST)
+
+    //Returns the following as a Promise Value
+    { status: "success",
+      data: "Write succeeded" }
 ```
 
 
