@@ -7,6 +7,7 @@
 const blake = require("blakejs");
 const nacl = require("tweetnacl");
 const base64url = require("base64-url");
+const fetch = require("node-fetch");
 
 /**
  * Convert binary to hex.
