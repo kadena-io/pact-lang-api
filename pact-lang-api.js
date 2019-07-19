@@ -141,15 +141,15 @@ var prepareExecCmd = function(keyPairs, nonce=new Date().toISOString(), pactCode
   var kpArray = asArray(keyPairs);
   var signers = kpArray.map(mkSigner);
   var cmdJSON = {
-    nonce: nonce,
     payload: {
       exec: {
-        code: pactCode,
-        data: envData || {}
+        data: envData || {},
+        code: pactCode
       }
     },
     signers: signers,
-    meta: meta
+    meta: meta,
+    nonce: JSON.stringify(nonce)
   };
   var cmd = JSON.stringify(cmdJSON);
   var sigs = kpArray.map(function(kp) {
@@ -189,9 +189,9 @@ var mkPublicSend = function(cmds) {
  */
 var mkSigner = function(kp) {
   return {
-    pubKey: kp.publicKey,
     addr: kp.publicKey,
-    scheme: "ED25519"
+    scheme: "ED25519",
+    pubKey: kp.publicKey
   };
 };
 

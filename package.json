@@ -5,11 +5,7 @@
   "main": "pact-lang-api.js",
   "scripts": {
     "start:pact": "rm -Rf ./log && mkdir log && pact --serve server.conf",
-    "test:fetch": "node ./test/fetch.js",
-    "test:api": "node ./test/api.js",
-    "test:crypto": "node ./test/crypto.js",
-    "test:lang": "node ./test/lang.js",
-    "test:simple": "node ./test/simple.js",
+    "test": "tape ./test/*.test.js",
     "build": "browserify pact-lang-api.js -o pact-lang-api.min.js && browserify pact-lang-api-global.js -o pact-lang-api-global.min.js"
   },
   "repository": {
