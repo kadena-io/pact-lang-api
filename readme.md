@@ -79,26 +79,26 @@ Pact.fetch.send([<execCmd:object>], <apiHost:string>) -> {"requestKeys": [...]}
                     keyPairs: KEY_PAIR,
                     pactCode: "(accounts.create-account 'account-1 (read-keyset 'account-keyset))",
                     envData: {
-                      "account-keyset": ["368820f80c324bbc7c2b0610688a7da43e39f91d118732671cd9c7500ff43cca"], 
+                      account-keyset: ["368820f80c324bbc7c2b0610688a7da43e39f91d118732671cd9c7500ff43cca"], 
                     }
                   }, 
                   {
                     keyPairs: KEY_PAIR,
                     pactCode: "(accounts.create-account 'account2 (read-keyset 'account-keyset))",
                     envData: {
-                      "account-keyset": {
-                        "keys": [
-                            "2d70aa4f697c3a3b8dd6d97745ac074edcfd0eb65c37774cde25135483bea71e",
-                            "4c31dc9ee7f24177f78b6f518012a208326e2af1f37bb0a2405b5056d0cad628"
+                      account-keyset: {
+                        keys: [
+                          "2d70aa4f697c3a3b8dd6d97745ac074edcfd0eb65c37774cde25135483bea71e",
+                          "4c31dc9ee7f24177f78b6f518012a208326e2af1f37bb0a2405b5056d0cad628"
                         ],
-                        "pred": "keys-any"
+                        pred: "keys-any"
                       }
                     }
                   }]
 
     Pact.fetch.send(cmds, API_HOST)
 
-    //Returns the following as a Promise Value
+    // Returns the following as a Promise Value
     { requestKeys: [ "6ue-lrwXaLcDyxDwJ1nuLzOfFtnQ2TaF0_Or_X0KnbE",
                      "P7qDsrt3evfEjtlQAW_b1ZPS7LpAZynCO8wx99hc5i0" ]}
 ```
@@ -114,17 +114,16 @@ Pact.fetch.local(<execCmd:object>, <apiHost:string>) -> {result}
 
     Pact.fetch.local(cmd, API_HOST)
 
-    //Returns the following as a Promise Value
+    // Returns the following as a Promise Value
     { status: "success",
-      data: [{
-        { "keyset": {
-           "pred": "keys-all",
-           "keys": ["368820f80c324bbc7c2b0610688a7da43e39f91d118732671cd9c7500ff43cca"]
-           },
-          "balance": 0
-        }
-       }]
-     }
+      data: { 
+        keyset: {
+           pred: "keys-all",
+           keys: ["368820f80c324bbc7c2b0610688a7da43e39f91d118732671cd9c7500ff43cca"]
+        },
+        balance: 0.0
+      }
+    }
 ```
 ```
 ## Make API request to retrieve result of a tx or multiple tx's with request keys.
@@ -136,7 +135,7 @@ Pact.fetch.poll({requestKeys: ["..."]}, <apiHost:string>) -> [{requestKey: "..."
 
     Pact.fetch.poll(cmd, API_HOST)
 
-    //Returns the following as a Promise Value
+    // Returns the following as a Promise Value
     [{ reqKey: "6ue-lrwXaLcDyxDwJ1nuLzOfFtnQ2TaF0_Or_X0KnbE",
        result: {
          status: "success",
@@ -159,7 +158,7 @@ Pact.fetch.listen({listen: "..."}, <apiHost:string>) -> {status: "...", data: ".
 
     Pact.fetch.listen(cmd, API_HOST)
 
-    //Returns the following as a Promise Value
+    // Returns the following as a Promise Value
     { status: "success",
       data: "Write succeeded" }
 ```
