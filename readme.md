@@ -40,9 +40,10 @@ Pact.crypto.toTweetNaclSecretKey(keyPair) -> <Uint8Array>
 ### Language Expression Construction
 
 A helper function for constructing native Pact commands.
-
+- mkExp takes in Pact function and its arguments and returns a Pact expression.
+- mkMeta returns an object of metadata of the tx. "sender" represents the gas account, "ChainId" represents the Chain Id, gasPrice represents the price of gas, and gasLimit represents the limit of gas.
 ```
-Pact.lang.mkExp(<string>, *args) -> <string>
+Pact.lang.mkExp(<function:string>, *args) -> <string>
   ex: mkExp("todos.edit-todo", 1, "bar") -> '(todos.edit-todo 1 "bar")'
 
 Pact.lang.mkMeta(<sender:string> , <chainId:string>, <gasPrice: nunmber>, <gasLimit: number>) -> <meta: object>
@@ -64,7 +65,7 @@ Simple fetch functions to make API request to a running Pact Server and retrieve
 * @property pactCode {string} - pact code to execute
 * @property keyPairs {array or object} - array or single ED25519 keypair
 * @property nonce {string} - nonce value, default at current time
-* @property envData {object} - JSON message data for command, default at empty obj
+* @property envData {object} - JSON message data including keyset information, default at empty obj
 * @property meta {object} - meta information, see mkMeta
 */
 ```
@@ -76,21 +77,30 @@ Pact.fetch.send([<execCmd:object>], <apiHost:string>) -> {"requestKeys": [...]}
   ex:
     const cmds = [{
                     keyPairs: KEY_PAIR,
-                    pactCode: 'todos.delete-todos "id-1"'
-                  },{
+                    pactCode: "(accounts.create-account 'account-1 (read-keyset 'account-keyset))",
+                    envData: {
+                      "account-keyset": ["368820f80c324bbc7c2b0610688a7da43e39f91d118732671cd9c7500ff43cca"], 
+                    }
+                  }, 
+                  {
                     keyPairs: KEY_PAIR,
-                    pactCode: 'todos.delete-todos "id-2"'
-                  },{
-                    keyPairs: KEY_PAIR,
-                    pactCode: 'todos.delete-todos "id-3"'
+                    pactCode: "(accounts.create-account 'account2 (read-keyset 'account-keyset))",
+                    envData: {
+                      "account-keyset": {
+                        "keys": [
+                            "2d70aa4f697c3a3b8dd6d97745ac074edcfd0eb65c37774cde25135483bea71e",
+                            "4c31dc9ee7f24177f78b6f518012a208326e2af1f37bb0a2405b5056d0cad628"
+                        ],
+                        "pred": "keys-any"
+                      }
+                    }
                   }]
 
     Pact.fetch.send(cmds, API_HOST)
 
     //Returns the following as a Promise Value
     { requestKeys: [ "6ue-lrwXaLcDyxDwJ1nuLzOfFtnQ2TaF0_Or_X0KnbE",
-                     "P7qDsrt3evfEjtlQAW_b1ZPS7LpAZynCO8wx99hc5i0",
-                     "qqhiEAuerIBrkZArSXPZxybQLzkTzHcwiB4ZrRU7FJM" ]}
+                     "P7qDsrt3evfEjtlQAW_b1ZPS7LpAZynCO8wx99hc5i0" ]}
 ```
 ```
 ## Make API request to execute a single command in the local server and retrieve the result of the tx. (Used to execute commands that read DB)
@@ -99,18 +109,22 @@ Pact.fetch.local(<execCmd:object>, <apiHost:string>) -> {result}
   ex:     
     const cmd = {
         keyPairs: KEY_PAIR,
-        pactCode: `(todos.read-todos)`
+        pactCode: `(accounts.read-account 'account1)`
       };
 
     Pact.fetch.local(cmd, API_HOST)
 
     //Returns the following as a Promise Value
     { status: "success",
-       data: [{ id: "id-1"
-                title: "wash"
-                completed: false
-              }]
-    }
+      data: [{
+        { "keyset": {
+           "pred": "keys-all",
+           "keys": ["368820f80c324bbc7c2b0610688a7da43e39f91d118732671cd9c7500ff43cca"]
+           },
+          "balance": 0
+        }
+       }]
+     }
 ```
 ```
 ## Make API request to retrieve result of a tx or multiple tx's with request keys.
