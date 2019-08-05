@@ -41,7 +41,11 @@ Pact.crypto.toTweetNaclSecretKey(keyPair) -> <Uint8Array>
 
 A helper function for constructing native Pact commands.
 - mkExp takes in Pact function and its arguments and returns a Pact expression.
-- mkMeta returns an object of metadata of the tx. "sender" represents the gas account, "ChainId" represents the Chain Id, "gasPrice" represents the price of gas, and "gasLimit" represents the limit of gas.
+- mkMeta returns gas information of the tx in object format. This is only important for the txs in public blockchain. txs don't need gas in private blockchain.
+   * "sender" represents the gas account, and the tx must be signed with the keyset associated with the gas account. Otherwise, the tx will be rejected.
+   * "ChainId" represents the Chain Id that the tx will be sent to.
+   * "gasPrice" represents the gas price of the tx.
+   * "gasLimit" represents the gas limit of the tx.
 ```
 Pact.lang.mkExp(<function:string>, *args) -> <string>
   ex: mkExp("todos.edit-todo", 1, "bar") -> '(todos.edit-todo 1 "bar")'
@@ -81,9 +85,9 @@ Pact.fetch.send([<execCmd:object>], <apiHost:string>) -> {"requestKeys": [...]}
                      keyPairs: KEY_PAIR,
                      pactCode: "(accounts.create-account 'account-1 (read-keyset 'account-keyset))",
                      envData: {
-                       "account-keyset": ["368820f80c324bbc7c2b0610688a7da43e39f91d118732671cd9c7500ff43cca"], 
+                       "account-keyset": ["368820f80c324bbc7c2b0610688a7da43e39f91d118732671cd9c7500ff43cca"],
                      }
-                  }, 
+                  },
                   // create an account with multi-sig keyset
                   {
                     keyPairs: KEY_PAIR,
@@ -120,7 +124,7 @@ Pact.fetch.local(<execCmd:object>, <apiHost:string>) -> {result}
 
     // Returns the following as a Promise Value
     { "status": "success",
-      "data": { 
+      "data": {
         "keyset": {
            "pred": "keys-all",
            "keys": ["368820f80c324bbc7c2b0610688a7da43e39f91d118732671cd9c7500ff43cca"]
