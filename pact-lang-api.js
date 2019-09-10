@@ -131,10 +131,10 @@ var pullAndCheckHashs = function(sigs) {
  * @param nonce {string} - nonce value for ensuring unique hash
  * @param pactCode {string} - pact code to execute
  * @param envData {object} - JSON message data for command
- * @param meta {object} - meta information, see mkMeta
+ * @param meta {object} - public meta information, see mkMeta
  * @return valid pact API command for send or local use.
  */
-var prepareExecCmd = function(keyPairs, nonce=new Date().toISOString(), pactCode, envData, meta=mkMeta("","",0,0)) {
+var prepareExecCmd = function(keyPairs, nonce=new Date().toISOString(), pactCode, envData, meta=mkMeta("","",0,0,0,0)) {
   enforceType(nonce, "string", "nonce");
   enforceType(pactCode, "string", "pactCode");
 
@@ -313,23 +313,29 @@ var mkExp = function(pgmName) {
 };
 
 /**
- * Prepare a chainweb-style meta payload.
+ * Prepare a chainweb-style public meta payload.
  * @param sender {string} gas account
  * @param chainId {string} chain identifier
  * @param gasPrice {number} desired gas price
  * @param gasLimit {number} desired gas limit
+ * @param creationTime {number} desired creation time.
+ * @param ttl {number} desired tx's time to live in seconds
  * @return {object} of arguments, type-checked and properly named.
  */
-var mkMeta = function(sender, chainId, gasPrice, gasLimit) {
+var mkMeta = function(sender, chainId, gasPrice, gasLimit, creationTime, ttl) {
   enforceType(sender, "string", "sender");
   enforceType(chainId, "string", "chainId");
   enforceType(gasPrice, "number", "gasPrice");
   enforceType(gasPrice, "number", "gasLimit");
+  enforceType(gasPrice, "number", "creationTime");
+  enforceType(gasPrice, "number", "ttl");
   return {
     gasLimit: gasLimit,
     chainId: chainId,
     gasPrice: gasPrice,
-    sender: sender
+    sender: sender,
+    creationTime: creationTime,
+    ttl: ttl
   };
 };
 
