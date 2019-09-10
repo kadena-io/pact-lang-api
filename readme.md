@@ -40,13 +40,18 @@ Pact.crypto.toTweetNaclSecretKey(keyPair) -> <Uint8Array>
 ### Language Expression Construction
 
 A helper function for constructing native Pact commands.
-
+- mkExp takes in Pact function and its arguments and returns a Pact expression.
+- mkMeta returns gas information of the tx in object format. This is only important for the txs in public blockchain. txs don't need gas in private blockchain.
+   * "sender" represents the gas account, and the tx must be signed with the keyset associated with the gas account. Otherwise, the tx will be rejected.
+   * "ChainId" represents the Chain Id that the tx will be sent to.
+   * "gasPrice" represents the gas price of the tx.
+   * "gasLimit" represents the gas limit of the tx.
 ```
-Pact.lang.mkExp(<string>, *args) -> <string>
+Pact.lang.mkExp(<function:string>, *args) -> <string>
   ex: mkExp("todos.edit-todo", 1, "bar") -> '(todos.edit-todo 1 "bar")'
 
-Pact.lang.mkMeta(<sender:string> , <chainId:string>, <gasPrice: number>, <gasLimit: number>, <creationTime: number>, <ttl: number>) -> <meta: object>
-  ex: mkMeta("Bob", "1", 0.001, 100, 0, 28800) -> { "sender": "Bob", "ChainId": "1", "gasPrice": 0.001, "gasLimit": 100, "creationTime": 0, "ttl": 28800 }
+Pact.lang.mkMeta(<sender:string> , <chainId:string>, <gasPrice: nunmber>, <gasLimit: number>) -> <meta: object>
+  ex: mkMeta("Bob", "Chain-1", 20, 30) -> { "sender": "Bob", "ChainId": "Chain-1", "gasPrice": 20, "gasLimit": 30 }
 ```
 
 NB: `JSON.stringify`, which is used here, generally converts floating point numbers correctly but fails for high precision scientific numbers < 0; you will need to manually convert them.
@@ -64,7 +69,7 @@ Simple fetch functions to make API request to a running Pact Server and retrieve
 * @property pactCode {string} - pact code to execute
 * @property keyPairs {array or object} - array or single ED25519 keypair
 * @property nonce {string} - nonce value, default at current time
-* @property envData {object} - JSON message data for command, default at empty obj
+* @property envData {object} - JSON message data including keyset information, default at empty obj
 * @property meta {object} - meta information, see mkMeta
 */
 ```
@@ -74,23 +79,36 @@ Simple fetch functions to make API request to a running Pact Server and retrieve
 Pact.fetch.send([<execCmd:object>], <apiHost:string>) -> {"requestKeys": [...]}
 
   ex:
-    const cmds = [{
+    const cmds = [
+                  // create an account with single-sig keyset
+                  {
+                     keyPairs: KEY_PAIR,
+                     pactCode: "(accounts.create-account 'account-1 (read-keyset 'account-keyset))",
+                     envData: {
+                       "account-keyset": ["368820f80c324bbc7c2b0610688a7da43e39f91d118732671cd9c7500ff43cca"],
+                     }
+                  },
+                  // create an account with multi-sig keyset
+                  {
                     keyPairs: KEY_PAIR,
-                    pactCode: 'todos.delete-todos "id-1"'
-                  },{
-                    keyPairs: KEY_PAIR,
-                    pactCode: 'todos.delete-todos "id-2"'
-                  },{
-                    keyPairs: KEY_PAIR,
-                    pactCode: 'todos.delete-todos "id-3"'
-                  }]
+                    pactCode: "(accounts.create-account 'account2 (read-keyset 'account-keyset))",
+                    envData: {
+                      "account-keyset": {
+                        "keys": [
+                          "2d70aa4f697c3a3b8dd6d97745ac074edcfd0eb65c37774cde25135483bea71e",
+                          "4c31dc9ee7f24177f78b6f518012a208326e2af1f37bb0a2405b5056d0cad628"
+                        ],
+                        "pred": "keys-any"
+                      }
+                    }
+                  }
+                 ]
 
     Pact.fetch.send(cmds, API_HOST)
 
-    //Returns the following as a Promise Value
-    { requestKeys: [ "6ue-lrwXaLcDyxDwJ1nuLzOfFtnQ2TaF0_Or_X0KnbE",
-                     "P7qDsrt3evfEjtlQAW_b1ZPS7LpAZynCO8wx99hc5i0",
-                     "qqhiEAuerIBrkZArSXPZxybQLzkTzHcwiB4ZrRU7FJM" ]}
+    // Returns the following as a Promise Value
+    { "requestKeys": [ "6ue-lrwXaLcDyxDwJ1nuLzOfFtnQ2TaF0_Or_X0KnbE",
+                     "P7qDsrt3evfEjtlQAW_b1ZPS7LpAZynCO8wx99hc5i0" ]}
 ```
 ```
 ## Make API request to execute a single command in the local server and retrieve the result of the tx. (Used to execute commands that read DB)
@@ -99,17 +117,20 @@ Pact.fetch.local(<execCmd:object>, <apiHost:string>) -> {result}
   ex:     
     const cmd = {
         keyPairs: KEY_PAIR,
-        pactCode: `(todos.read-todos)`
+        pactCode: `(accounts.read-account 'account1)`
       };
 
     Pact.fetch.local(cmd, API_HOST)
 
-    //Returns the following as a Promise Value
-    { status: "success",
-       data: [{ id: "id-1"
-                title: "wash"
-                completed: false
-              }]
+    // Returns the following as a Promise Value
+    { "status": "success",
+      "data": {
+        "keyset": {
+           "pred": "keys-all",
+           "keys": ["368820f80c324bbc7c2b0610688a7da43e39f91d118732671cd9c7500ff43cca"]
+        },
+        "balance": 0.0
+      }
     }
 ```
 ```
@@ -122,17 +143,17 @@ Pact.fetch.poll({requestKeys: ["..."]}, <apiHost:string>) -> [{requestKey: "..."
 
     Pact.fetch.poll(cmd, API_HOST)
 
-    //Returns the following as a Promise Value
-    [{ reqKey: "6ue-lrwXaLcDyxDwJ1nuLzOfFtnQ2TaF0_Or_X0KnbE",
-       result: {
-         status: "success",
-         data: "Write succeeded"
+    // Returns the following as a Promise Value
+    [{ "reqKey": "6ue-lrwXaLcDyxDwJ1nuLzOfFtnQ2TaF0_Or_X0KnbE",
+       "result": {
+         "status": "success",
+         "data": "Write succeeded"
        }
      },
-     { reqKey: "P7qDsrt3evfEjtlQAW_b1ZPS7LpAZynCO8wx99hc5i0",
-       result: {
-         status: "success",
-         data: "Write succeeded"
+     { "reqKey": "P7qDsrt3evfEjtlQAW_b1ZPS7LpAZynCO8wx99hc5i0",
+       "result": {
+         "status": "success",
+         "data": "Write succeeded"
        }
      }]
 ```
@@ -145,9 +166,9 @@ Pact.fetch.listen({listen: "..."}, <apiHost:string>) -> {status: "...", data: ".
 
     Pact.fetch.listen(cmd, API_HOST)
 
-    //Returns the following as a Promise Value
-    { status: "success",
-      data: "Write succeeded" }
+    // Returns the following as a Promise Value
+    { "status": "success",
+      "data": "Write succeeded" }
 ```
 
 
