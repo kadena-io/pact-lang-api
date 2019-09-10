@@ -46,12 +46,14 @@ A helper function for constructing native Pact commands.
    * "ChainId" represents the Chain Id that the tx will be sent to.
    * "gasPrice" represents the gas price of the tx.
    * "gasLimit" represents the gas limit of the tx.
+   * "creationTime" represents the creation time of the tx (0 refers to current time).
+   * "ttl" represents the tx's time to live on chain. (in seconds)
 ```
 Pact.lang.mkExp(<function:string>, *args) -> <string>
   ex: mkExp("todos.edit-todo", 1, "bar") -> '(todos.edit-todo 1 "bar")'
 
-Pact.lang.mkMeta(<sender:string> , <chainId:string>, <gasPrice: nunmber>, <gasLimit: number>) -> <meta: object>
-  ex: mkMeta("Bob", "Chain-1", 20, 30) -> { "sender": "Bob", "ChainId": "Chain-1", "gasPrice": 20, "gasLimit": 30 }
+Pact.lang.mkMeta(<sender:string> , <chainId:string>, <gasPrice: number>, <gasLimit: number>, <creationTime: number>, <ttl: number>) -> <meta: object>
+  ex: mkMeta("Bob", "1", 0.0001, 100, 0, 28800) -> { "sender": "Bob", "ChainId": "1", "gasPrice": 0.0001, "gasLimit": 100, "creationTime": 0, "ttl": 28800 }
 ```
 
 NB: `JSON.stringify`, which is used here, generally converts floating point numbers correctly but fails for high precision scientific numbers < 0; you will need to manually convert them.
