@@ -40,14 +40,14 @@ Pact.crypto.toTweetNaclSecretKey(keyPair) -> <Uint8Array>
 ### Language Expression Construction
 
 A helper function for constructing native Pact commands.
-- mkExp takes in Pact function and its arguments and returns a Pact expression.
-- mkMeta returns gas information of the tx in object format. This is only important for the txs in public blockchain. txs don't need gas in private blockchain.
+- `mkExp` takes in Pact function and its arguments and returns a Pact expression.
+- `mkMeta` returns meta information of the tx in object format. This is only important for the txs in public blockchain. txs don't need a meta field in private blockchain.
    * "sender" represents the gas account, and the tx must be signed with the keyset associated with the gas account. Otherwise, the tx will be rejected.
-   * "ChainId" represents the Chain Id that the tx will be sent to.
+   * "ChainId" represents the chain Id that the tx will be sent to.
    * "gasPrice" represents the gas price of the tx.
    * "gasLimit" represents the gas limit of the tx.
-   * "creationTime" represents the creation time of the tx (0 refers to current time).
-   * "ttl" represents the tx's time to live on chain. (in seconds)
+   * "creationTime" represents the tx's wait time to be considered a candidate for inclusion into a block in the blockchain. (in seconds)
+   * "ttl" represents the tx's maximum wait time to be considered a candidate for inclusion into a block in the blockchain. (in seconds)
 ```
 Pact.lang.mkExp(<function:string>, *args) -> <string>
   ex: mkExp("todos.edit-todo", 1, "bar") -> '(todos.edit-todo 1 "bar")'
@@ -71,7 +71,7 @@ Simple fetch functions to make API request to a running Pact Server and retrieve
 * @property pactCode {string} - pact code to execute
 * @property keyPairs {array or object} - array or single ED25519 keypair
 * @property nonce {string} - nonce value, default at current time
-* @property envData {object} - JSON message data including keyset information, default at empty obj
+* @property envData {object} - JSON message data including keyset information, defaults to empty obj
 * @property meta {object} - meta information, see mkMeta
 */
 ```
