@@ -318,8 +318,8 @@ var mkExp = function(pgmName) {
  * @param chainId {string} chain identifier
  * @param gasPrice {number} desired gas price
  * @param gasLimit {number} desired gas limit
- * @param creationTime {number} desired creation time.
- * @param ttl {number} desired tx's time to live in seconds
+ * @param creationTime {number} desired tx's time created (current time) as seconds
+ * @param ttl {number} desired tx's time to live as seconds
  * @return {object} of arguments, type-checked and properly named.
  */
 var mkMeta = function(sender, chainId, gasPrice, gasLimit, creationTime, ttl) {
