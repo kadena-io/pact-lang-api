@@ -43,7 +43,7 @@ A helper function for constructing native Pact commands.
 - `mkExp` takes in Pact function and its arguments and returns a Pact expression.
 - `mkMeta` returns meta information of the tx in object format. This is only important for the txs in public blockchain. txs don't need a meta field in private blockchain.
    * "sender" represents the gas account, and the tx must be signed with the keyset associated with the gas account. Otherwise, the tx will be rejected.
-   * "ChainId" represents the chain Id that the tx will be sent to.
+   * "chainId" represents the chain Id that the tx will be sent to.
    * "gasPrice" represents the gas price of the tx.
    * "gasLimit" represents the gas limit of the tx.
    * "creationTime" represents the tx's wait time to be considered a candidate for inclusion into a block in the blockchain. (in seconds)
@@ -53,7 +53,7 @@ Pact.lang.mkExp(<function:string>, *args) -> <string>
   ex: mkExp("todos.edit-todo", 1, "bar") -> '(todos.edit-todo 1 "bar")'
 
 Pact.lang.mkMeta(<sender:string> , <chainId:string>, <gasPrice: number>, <gasLimit: number>, <creationTime: number>, <ttl: number>) -> <meta: object>
-  ex: mkMeta("Bob", "1", 0.0001, 100, 0, 28800) -> { "sender": "Bob", "ChainId": "1", "gasPrice": 0.0001, "gasLimit": 100, "creationTime": 0, "ttl": 28800 }
+  ex: mkMeta("Bob", "1", 0.0001, 100, 0, 28800) -> { "sender": "Bob", "chainId": "1", "gasPrice": 0.0001, "gasLimit": 100, "creationTime": 0, "ttl": 28800 }
 ```
 
 NB: `JSON.stringify`, which is used here, generally converts floating point numbers correctly but fails for high precision scientific numbers < 0; you will need to manually convert them.
