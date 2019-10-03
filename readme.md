@@ -73,6 +73,7 @@ Simple fetch functions to make API request to a running Pact Server and retrieve
 * @property nonce {string} - nonce value, default at current time
 * @property envData {object} - JSON message data including keyset information, defaults to empty obj
 * @property meta {object} - meta information, see mkMeta
+* @property networkId {object} network information of where the cmd is executed.
 */
 ```
 ```
