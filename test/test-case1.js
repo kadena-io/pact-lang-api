@@ -8,13 +8,9 @@ var pactCode = "(define-keyset 'k (read-keyset \"accounts-admin-keyset\"))\n(mod
 var envData = {
   "accounts-admin-keyset": ["ba54b224d1924dd98403f5c751abdd10de6cd81b0121800bf7bdbdcfaec7388d"]
 }
-var meta = {
-  "gasLimit": 0,
-  "chainId": "",
-  "gasPrice": 0,
-  "sender": ""
-}
+
 var cmd = {
+  networkId: null,
   payload: {
     exec: {
       data: envData,
@@ -22,11 +18,9 @@ var cmd = {
     }
   },
   signers: [{
-    "addr": "ba54b224d1924dd98403f5c751abdd10de6cd81b0121800bf7bdbdcfaec7388d",
-    "scheme": "ED25519",
     "pubKey": "ba54b224d1924dd98403f5c751abdd10de6cd81b0121800bf7bdbdcfaec7388d"
   }],
-  meta,
+  meta: { creationTime: 0, ttl: 0, gasLimit: 0, chainId: "", gasPrice: 0, sender: "" },
   nonce: JSON.stringify(nonce)
 }
 
@@ -35,6 +29,5 @@ module.exports = {
   kp: kp,
   nonce: nonce,
   pactCode: pactCode,
-  meta: meta,
   envData: envData
 }

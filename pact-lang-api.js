@@ -134,13 +134,14 @@ var pullAndCheckHashs = function(sigs) {
  * @param meta {object} - public meta information, see mkMeta
  * @return valid pact API command for send or local use.
  */
-var prepareExecCmd = function(keyPairs, nonce=new Date().toISOString(), pactCode, envData, meta=mkMeta("","",0,0,0,0)) {
+var prepareExecCmd = function(keyPairs, nonce=new Date().toISOString(), pactCode, envData, meta=mkMeta("","",0,0,0,0), networkId=null) {
   enforceType(nonce, "string", "nonce");
   enforceType(pactCode, "string", "pactCode");
 
   var kpArray = asArray(keyPairs);
   var signers = kpArray.map(mkSigner);
   var cmdJSON = {
+    networkId: networkId,
     payload: {
       exec: {
         data: envData || {},
@@ -189,8 +190,6 @@ var mkPublicSend = function(cmds) {
  */
 var mkSigner = function(kp) {
   return {
-    addr: kp.publicKey,
-    scheme: "ED25519",
     pubKey: kp.publicKey
   };
 };
@@ -318,7 +317,7 @@ var mkExp = function(pgmName) {
  * @param chainId {string} chain identifier
  * @param gasPrice {number} desired gas price
  * @param gasLimit {number} desired gas limit
- * @param creationTime {number} desired tx's time created (current time) as seconds
+ * @param creationTime {number} desired tx's time created in UNIX epoch time as seconds
  * @param ttl {number} desired tx's time to live as seconds
  * @return {object} of arguments, type-checked and properly named.
  */
@@ -326,16 +325,16 @@ var mkMeta = function(sender, chainId, gasPrice, gasLimit, creationTime, ttl) {
   enforceType(sender, "string", "sender");
   enforceType(chainId, "string", "chainId");
   enforceType(gasPrice, "number", "gasPrice");
-  enforceType(gasPrice, "number", "gasLimit");
-  enforceType(gasPrice, "number", "creationTime");
-  enforceType(gasPrice, "number", "ttl");
+  enforceType(gasLimit, "number", "gasLimit");
+  enforceType(creationTime, "number", "creationTime");
+  enforceType(ttl,  "number", "ttl");
   return {
+    creationTime: creationTime,
+    ttl: ttl,
     gasLimit: gasLimit,
     chainId: chainId,
     gasPrice: gasPrice,
-    sender: sender,
-    creationTime: creationTime,
-    ttl: ttl
+    sender: sender
   };
 };
 
@@ -360,6 +359,7 @@ var mkReq = function(cmd) {
  * @property nonce {string} nonce value, default at current time
  * @property envData {object} JSON message data for command, default at empty obj
  * @property meta {object} meta information, see mkMeta
+ * @property networkId {object} network information of where the cmd is executed.
  */
 
 /**
@@ -370,7 +370,7 @@ var mkReq = function(cmd) {
  */
 const fetchSend = async function(sendCmd, apiHost){
   if (!apiHost)  throw new Error(`Pact.fetch.send(): No apiHost provided`);
-  const sendCmds = asArray(sendCmd).map(cmd => prepareExecCmd(cmd.keyPairs, cmd.nonce, cmd.pactCode, cmd.envData, cmd.meta));
+  const sendCmds = asArray(sendCmd).map(cmd => prepareExecCmd(cmd.keyPairs, cmd.nonce, cmd.pactCode, cmd.envData, cmd.meta, cmd.network));
   const txRes = await fetch(`${apiHost}/api/v1/send`, mkReq(mkPublicSend(sendCmds)));
   const tx = await txRes.json();
   return tx;
@@ -384,8 +384,8 @@ const fetchSend = async function(sendCmd, apiHost){
  */
 const fetchLocal = async function(localCmd, apiHost) {
   if (!apiHost)  throw new Error(`Pact.fetch.local(): No apiHost provided`);
-  const {keyPairs, nonce, pactCode, envData, meta} = localCmd
-  const cmd = prepareExecCmd(keyPairs, nonce, pactCode, envData, meta);
+  const {keyPairs, nonce, pactCode, envData, meta, networkId} = localCmd
+  const cmd = prepareExecCmd(keyPairs, nonce, pactCode, envData, meta, networkId);
   const txRes = await fetch(`${apiHost}/api/v1/local`, mkReq(cmd));
   const tx = await txRes.json();
   return tx.result;
