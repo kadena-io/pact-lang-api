@@ -3,7 +3,7 @@ var Pact = require("./../pact-lang-api.js")
 var test1 = require("./test-case1.js")
 
 // Import Test Case
-var { kp, cmd, nonce, pactCode, envData, meta } = require("./test-case1.js")
+var { kp, cmd, nonce, pactCode, envData, meta, networkId } = require("./test-case1.js")
 
 var apiHost = "http://localhost:9001"
 
@@ -13,13 +13,12 @@ test("Make a send request and retrieve request key", async function(t) {
     keyPairs: kp,
     nonce: nonce,
     pactCode: pactCode,
-    envData: envData,
-    meta: meta
+    envData: envData
   }
 
   var actual = await Pact.fetch.send(cmdObj, apiHost);
   var expected = {
-    requestKeys: ['zaqnRQ0RYzxTccjtYoBvQsDo5K9mxr4TEF-HIYTi5Jo']
+    requestKeys: ['uolsidh4DWN-D44FoElnosL8e5-cGCGn_0l2Nct5mq8']
   }
 
   t.deepEqual(actual, expected);
@@ -32,8 +31,7 @@ test("Make a local request and retrieve result", async function(t) {
     keyPairs: kp,
     nonce: nonce,
     pactCode: pactCode,
-    envData: envData,
-    meta: meta
+    envData: envData
   }
 
   var actual = await Pact.fetch.local(cmdObj, apiHost);
@@ -49,11 +47,11 @@ test("Make a local request and retrieve result", async function(t) {
 
 // test Pact.fetch.poll()
 test("Make a poll request with a request key and retrieve result", async function(t) {
-  var pollRq = { requestKeys: ["zaqnRQ0RYzxTccjtYoBvQsDo5K9mxr4TEF-HIYTi5Jo"] }
+  var pollRq = { requestKeys: ["uolsidh4DWN-D44FoElnosL8e5-cGCGn_0l2Nct5mq8"] }
 
   var actual = await Pact.fetch.poll(pollRq, apiHost);
   var expected = [{
-    reqKey: 'zaqnRQ0RYzxTccjtYoBvQsDo5K9mxr4TEF-HIYTi5Jo',
+    reqKey: 'uolsidh4DWN-D44FoElnosL8e5-cGCGn_0l2Nct5mq8',
     result: {
       status: 'success',
       data: {
@@ -67,7 +65,7 @@ test("Make a poll request with a request key and retrieve result", async functio
 
 // test Pact.fetch.listen()
 test("Make a listen request with a request key and retrieve result", async function(t) {
-  var listenRq = { listen: "zaqnRQ0RYzxTccjtYoBvQsDo5K9mxr4TEF-HIYTi5Jo" }
+  var listenRq = { listen: "uolsidh4DWN-D44FoElnosL8e5-cGCGn_0l2Nct5mq8" }
 
   var actual = await Pact.fetch.listen(listenRq, apiHost);
   var expected = {

@@ -57,7 +57,7 @@ test('Takes in hashed Uint8Array binary object and outputs Base 64 URL encoded s
 test('Takes in hex string, outputs blake2b256 hashing encoded as unescaped base64url', function (t) {
 
   var actual = Pact.crypto.hash(JSON.stringify(cmd))
-  var expected = "zaqnRQ0RYzxTccjtYoBvQsDo5K9mxr4TEF-HIYTi5Jo"
+  var expected = "uolsidh4DWN-D44FoElnosL8e5-cGCGn_0l2Nct5mq8"
 
   t.equals(actual, expected);
   t.end();
@@ -68,8 +68,8 @@ test("Takes in cmd and keypair, returns object with hash and signature", functio
 
   var actual = Pact.crypto.sign(JSON.stringify(cmd), kp);
   var expected = {
-   hash: 'zaqnRQ0RYzxTccjtYoBvQsDo5K9mxr4TEF-HIYTi5Jo',
-   sig: '6997a02e17ab6863bb9fe43200ae60c43fe4be278ff39e76887a33d7010ee2f15e6dfd4d0658c5e08ec3f397d1c1b37f15b01f613cedc49ce44e3714f789180a',
+   hash: 'uolsidh4DWN-D44FoElnosL8e5-cGCGn_0l2Nct5mq8',
+   sig: '4b0ecfbb0e8f3cb291b57abd27028ceaa221950affa39f10efbf4a5fe740d32670e94c3d3949a7e5f4f6ea692052ca110f7cb2e9a8ee2c5eff4251ed84bbfa03',
    pubKey: 'ba54b224d1924dd98403f5c751abdd10de6cd81b0121800bf7bdbdcfaec7388d'
  }
 
