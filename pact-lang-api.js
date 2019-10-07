@@ -134,7 +134,8 @@ var pullAndCheckHashs = function(sigs) {
  * @param meta {object} - public meta information, see mkMeta
  * @return valid pact API command for send or local use.
  */
-var prepareExecCmd = function(keyPairs, nonce=new Date().toISOString(), pactCode, envData, meta=mkMeta("","",0,0,0,0), networkId=null) {
+var prepareExecCmd = function(keyPairs, nonce=new Date().toISOString(), pactCode,
+                              envData, meta=mkMeta("","",0,0,0,0), networkId=null) {
   enforceType(nonce, "string", "nonce");
   enforceType(pactCode, "string", "pactCode");
 
@@ -359,7 +360,7 @@ var mkReq = function(cmd) {
  * @property nonce {string} nonce value, default at current time
  * @property envData {object} JSON message data for command, default at empty obj
  * @property meta {object} meta information, see mkMeta
- * @property networkId {object} network information of where the cmd is executed.
+ * @property networkId {object} network identifier of where the cmd is executed.
  */
 
 /**
