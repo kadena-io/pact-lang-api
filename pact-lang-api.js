@@ -413,12 +413,83 @@ const fetchPoll = async function(pollCmd, apiHost) {
  * @param {string} apiHost host running Pact server
  * @return {object} Object containing tx result from pact server
  */
-const fetchListen = async function(listenCmd, apiHost) {
-  if (!apiHost)  throw new Error(`Pact.fetch.listen(): No apiHost provided`);
-  const res = await fetch(`${apiHost}/api/v1/listen`, mkReq(listenCmd));
-  const resJSON = await res.json();
-  return resJSON.result;
+ const fetchListen = async function(listenCmd, apiHost) {
+   if (!apiHost)  throw new Error(`Pact.fetch.listen(): No apiHost provided`);
+   const res = await fetch(`${apiHost}/api/v1/listen`, mkReq(listenCmd));
+   const resJSON = await res.json();
+   return resJSON.result;
+ };
+
+/**
+  Signing API functions to interact with Chainweaver wallet
+ */
+
+/**
+ * Prepare a capability object to be signed with keyPairs using signing API.
+ * @param role {string} role of the pact capability
+ * @param description {string} description of the pact capability
+ * @param cap {string} pactCode of pact capability to be signed
+ * @return {object} A properly formatted cap object required in signingCmd
+ */
+var mkCap = function(role, description, cap) {
+  enforceType(role, "string", "role");
+  enforceType(description, "string", "description");
+  enforceType(cap, "string", "capability");
+  return {
+    role: role,
+    description: description,
+    cap: cap
+  };
 };
+
+/**
+ * A signingCmd Object to be sent to signing API
+ * @typedef {Object} signingCmd - cmd to be sent to signing API
+ * @property pactCode {string} - Pact code to execute - required
+ * @property caps {[<cap:object>]} - Pact capability to be signed, see mkCap - required
+ * @property envData {object} - JSON message data for command - optional
+ * @property sender {string} - sender field in meta, see mkMeta - optional
+ * @property chainId {string} - chainId field in meta, see mkMeta - optional
+ * @property gasLimit {number} - gasLimit field in meta, see mkMeta - optional
+ * @property nonce {string} - nonce value for ensuring unique hash - optional
+ **/
+
+/**
+ * Sends parameters of Pact Command to signing API and retrieve a signed Pact Command.
+ * @param signingCmd - cmd to be sent to signing API
+ * @return {object} valid pact API command for send or local use.
+ **/
+ const signWallet = async function (signingCmd){
+   if (!signingCmd.pactCode) throw new Error(`Pact.wallet.sign(): No Pact Code provided`);
+   const cmd = {
+     code: signingCmd.pactCode,
+     data: signingCmd.envDatam,
+     caps: asArray(signingCmd.caps),
+     sender: signingCmd.sender,
+     chainId: signingCmd.chainId,
+     gasLimit: signingCmd.gasLimit,
+     nonce: signingCmd.nonce,
+     ttl: signingCmd.ttl
+   }
+   const res = await fetch('http://127.0.0.1:9467/v1/sign', mkReq(cmd))
+   const resJSON = await res.json();
+   return resJSON.body;
+ }
+
+/**
+ * Sends a signed Pact ExecCmd to a running Pact server and retrieves tx result.
+ * @param {signedCmd} valid pact API command for send or local use.
+ * @param {string} apiHost host running Pact server
+ * @return {object} Request key of the tx received from pact server.
+ */
+const sendSigned = async function (signedCmd, apiHost) {
+  const cmd = {
+    "cmds": [ signedCmd ]
+  }
+  const txRes = await fetch(`${apiHost}/api/v1/send`, mkReq(cmd));
+  const tx = await txRes.json();
+  return tx;
+}
 
 module.exports = {
   crypto: {
@@ -437,7 +508,8 @@ module.exports = {
   },
   lang: {
     mkExp: mkExp,
-    mkMeta: mkMeta
+    mkMeta: mkMeta,
+    mkCap: mkCap
   },
   simple: {
     exec: {
@@ -452,5 +524,9 @@ module.exports = {
     local: fetchLocal,
     poll: fetchPoll,
     listen: fetchListen
+  },
+  wallet: {
+    sign: signWallet,
+    sendSigned: sendSigned
   }
 };
