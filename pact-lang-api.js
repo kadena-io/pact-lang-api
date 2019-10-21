@@ -127,7 +127,7 @@ var pullAndCheckHashs = function(sigs) {
 /**
  * Prepare an ExecMsg pact command for use in send or local execution.
  * To use in send, wrap result with 'mkSingleCommand'.
- * @param keyPairs {array or object} - array or single ED25519 keypair
+ * @param keyPairs {array or object} - array or single ED25519 keypair and clist
  * @param nonce {string} - nonce value for ensuring unique hash
  * @param pactCode {string} - pact code to execute
  * @param envData {object} - JSON message data for command
@@ -136,9 +136,9 @@ var pullAndCheckHashs = function(sigs) {
  */
 var prepareExecCmd = function(keyPairs, nonce=new Date().toISOString(), pactCode,
                               envData, meta=mkMeta("","",0,0,0,0), networkId=null) {
+
   enforceType(nonce, "string", "nonce");
   enforceType(pactCode, "string", "pactCode");
-
   var kpArray = asArray(keyPairs);
   var signers = kpArray.map(mkSigner);
   var cmdJSON = {
@@ -186,11 +186,12 @@ var mkPublicSend = function(cmds) {
 
 /**
  * Make an ED25519 "signer" array element for inclusion in a Pact payload.
- * @param {object} kp - a ED25519 keypair
+ * @param {object} kp - a ED25519 keypair and clist
  * @return {object} an object with pubKey, addr and scheme fields.
  */
 var mkSigner = function(kp) {
   return {
+    clist: kp.clist ? asArray(kp.clist) : [],
     pubKey: kp.publicKey
   };
 };
@@ -356,7 +357,7 @@ var mkReq = function(cmd) {
  * A Command Object to Execute in Pact Server.
  * @typedef {Object} execCmd
  * @property pactCode {string} pact code to execute
- * @property keyPairs {array or object} array or single ED25519 keypair
+ * @property keyPairs {array or object} array or single ED25519 keypair and clist
  * @property nonce {string} nonce value, default at current time
  * @property envData {object} JSON message data for command, default at empty obj
  * @property meta {object} meta information, see mkMeta
@@ -428,17 +429,22 @@ const fetchPoll = async function(pollCmd, apiHost) {
  * Prepare a capability object to be signed with keyPairs using signing API.
  * @param role {string} role of the pact capability
  * @param description {string} description of the pact capability
- * @param cap {string} pactCode of pact capability to be signed
+ * @param name {string} name of pact capability to be signed
+ * @param args {array} array of arguments used in pact capability, default to empty array.
  * @return {object} A properly formatted cap object required in signingCmd
  */
-var mkCap = function(role, description, cap) {
+var mkCap = function(role, description, name, args=[]) {
   enforceType(role, "string", "role");
   enforceType(description, "string", "description");
-  enforceType(cap, "string", "capability");
+  enforceType(name, "string", "name of capability");
+  enforceType(args, "object", "arguments to capability");
   return {
     role: role,
     description: description,
-    cap: cap
+    cap: {
+      name: name,
+      args: args
+    }
   };
 };
 
@@ -446,7 +452,7 @@ var mkCap = function(role, description, cap) {
  * A signingCmd Object to be sent to signing API
  * @typedef {Object} signingCmd - cmd to be sent to signing API
  * @property pactCode {string} - Pact code to execute - required
- * @property caps {[<cap:object>]} - Pact capability to be signed, see mkCap - required
+ * @property caps {array or object} - Pact capability to be signed, see mkCap - required
  * @property envData {object} - JSON message data for command - optional
  * @property sender {string} - sender field in meta, see mkMeta - optional
  * @property chainId {string} - chainId field in meta, see mkMeta - optional
