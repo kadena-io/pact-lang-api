@@ -372,7 +372,7 @@ var mkReq = function(cmd) {
  */
 const fetchSend = async function(sendCmd, apiHost){
   if (!apiHost)  throw new Error(`Pact.fetch.send(): No apiHost provided`);
-  const sendCmds = asArray(sendCmd).map(cmd => prepareExecCmd(cmd.keyPairs, cmd.nonce, cmd.pactCode, cmd.envData, cmd.meta, cmd.network));
+  const sendCmds = asArray(sendCmd).map(cmd => prepareExecCmd(cmd.keyPairs, cmd.nonce, cmd.pactCode, cmd.envData, cmd.meta, cmd.networkId));
   const txRes = await fetch(`${apiHost}/api/v1/send`, mkReq(mkPublicSend(sendCmds)));
   const tx = await txRes.json();
   return tx;
