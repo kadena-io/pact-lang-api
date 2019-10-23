@@ -469,7 +469,7 @@ var mkCap = function(role, description, name, args=[]) {
    if (!signingCmd.pactCode) throw new Error(`Pact.wallet.sign(): No Pact Code provided`);
    const cmd = {
      code: signingCmd.pactCode,
-     data: signingCmd.envDatam,
+     data: signingCmd.envData,
      caps: asArray(signingCmd.caps),
      sender: signingCmd.sender,
      chainId: signingCmd.chainId,
