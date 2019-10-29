@@ -127,7 +127,7 @@ var pullAndCheckHashs = function(sigs) {
 /**
  * Prepare an ExecMsg pact command for use in send or local execution.
  * To use in send, wrap result with 'mkSingleCommand'.
- * @param keyPairs {array or object} - array or single ED25519 keypair and/or clist
+ * @param keyPairs {array or object} - array or single ED25519 keypair and/or clist (list of `cap` in mkCap)
  * @param nonce {string} - nonce value for ensuring unique hash
  * @param pactCode {string} - pact code to execute
  * @param envData {object} - JSON message data for command
@@ -186,7 +186,7 @@ var mkPublicSend = function(cmds) {
 
 /**
  * Make an ED25519 "signer" array element for inclusion in a Pact payload.
- * @param {object} kp - a ED25519 keypair and/or clist
+ * @param {object} kp - a ED25519 keypair and/or clist (list of `cap` in mkCap)
  * @return {object} an object with pubKey, addr and scheme fields.
  */
 var mkSigner = function(kp) {
@@ -357,7 +357,7 @@ var mkReq = function(cmd) {
  * A Command Object to Execute in Pact Server.
  * @typedef {Object} execCmd
  * @property pactCode {string} pact code to execute
- * @property keyPairs {array or object} array or single ED25519 keypair and/or clist (list of `cap` in mkCap) 
+ * @property keyPairs {array or object} array or single ED25519 keypair and/or clist (list of `cap` in mkCap)
  * @property nonce {string} nonce value, default at current time
  * @property envData {object} JSON message data for command, default at empty obj
  * @property meta {object} meta information, see mkMeta
