@@ -48,16 +48,27 @@ A helper function for constructing native Pact commands.
    * "gasLimit" represents the gas limit of the tx.
    * "creationTime" represents the tx's wait time to be considered a candidate for inclusion into a block in the blockchain. (in seconds)
    * "ttl" represents the tx's maximum wait time to be considered a candidate for inclusion into a block in the blockchain. (in seconds)
-- `mkCap` takes in capability information and returns `cap` object to be inputted in `caps` field in signing API
+- `mkCap` prepares a capability object to be signed with keyPairs using signing API.
 
 ```
 Pact.lang.mkExp(<function:string>, *args) -> <string>
-  ex: mkExp("todos.edit-todo", 1, "bar") -> '(todos.edit-todo 1 "bar")'
+  ex: mkExp("todos.edit-todo", 1, "bar")
+    -> '(todos.edit-todo 1 "bar")'
 
 Pact.lang.mkMeta(<sender:string> , <chainId:string>, <gasPrice: number>, <gasLimit: number>, <creationTime: number>, <ttl: number>) -> <meta: object>
-  ex: mkMeta("Bob", "1", 0.0001, 100, 0, 28800) -> { "sender": "Bob", "chainId": "1", "gasPrice": 0.0001, "gasLimit": 100, "creationTime": 0, "ttl": 28800 }
+  ex: mkMeta("Bob", "1", 0.0001, 100, 0, 28800)
+    -> { "sender": "Bob", "chainId": "1", "gasPrice": 0.0001, "gasLimit": 100, "creationTime": 0, "ttl": 28800 }
 
 Pact.lang.mkCap(<role:string> , <description:string>, <name: string>, <args: object>) -> <cap: object>
+  ex: mkCap("Coin Transfer", "Capability to transfer designated amount of coin from sender to receiver", "coin.TRANSFER", ["Bob", "Kate", 10])
+    -> {
+          "role": "Coin Transfer",
+          "description": "Capability to transfer designated amount of coin from sender to receiver",
+          "cap": {
+            "name": "coin.TRANSFER",
+            "args": ["Bob", "Kate", 10]
+          }
+       }
 ```
 
 NB: `JSON.stringify`, which is used here, generally converts floating point numbers correctly but fails for high precision scientific numbers < 0; you will need to manually convert them.
@@ -73,7 +84,7 @@ Simple fetch functions to make API request to a running Pact Server and retrieve
 * A Command Object to Execute in send or local.
 * @typedef {Object} execCmd
 * @property pactCode {string} - pact code to execute
-* @property keyPairs {array or object} - array or single ED25519 keypair and/or clist
+* @property keyPairs {array or object} - array or single ED25519 keypair and/or clist(list of `cap` in mkCap) 
 * @property nonce {string} - nonce value, default at current time
 * @property envData {object} - JSON message data including keyset information, defaults to empty obj
 * @property meta {object} - meta information, see mkMeta
@@ -197,10 +208,10 @@ Simple functions to interact with Chainweaver wallet (https://github.com/kadena-
 ```
 
 ```
-## Creates a command that sends to the signing API and receives signed execCmd from the signingAPI.()
+## Sends parameters of Pact Command to the Chainweaver signing API and retrieves a signed Pact Command.
 Pact.wallet.sign(<signingCmd:object>) -> {<execCmd:object>}
 
-## Takes in a signed exec command from the signing API and makes a `/send` request to a running Pact server.
+## Sends a signed Pact ExecCmd to a running Pact server and retrieves tx result.
 Pact.wallet.sendSigned(<execCmd:object>, <apiHost:string>) -> {"requestKeys": [...]}
 ```
 

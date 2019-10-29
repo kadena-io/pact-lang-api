@@ -357,7 +357,7 @@ var mkReq = function(cmd) {
  * A Command Object to Execute in Pact Server.
  * @typedef {Object} execCmd
  * @property pactCode {string} pact code to execute
- * @property keyPairs {array or object} array or single ED25519 keypair and/or clist
+ * @property keyPairs {array or object} array or single ED25519 keypair and/or clist (list of `cap` in mkCap) 
  * @property nonce {string} nonce value, default at current time
  * @property envData {object} JSON message data for command, default at empty obj
  * @property meta {object} meta information, see mkMeta
@@ -426,7 +426,7 @@ const fetchPoll = async function(pollCmd, apiHost) {
  */
 
 /**
- * Prepare a capability object to be signed with keyPairs using signing API.
+ * Prepares a capability object to be signed with keyPairs using signing API.
  * @param role {string} role of the pact capability
  * @param description {string} description of the pact capability
  * @param name {string} name of pact capability to be signed
@@ -461,9 +461,9 @@ var mkCap = function(role, description, name, args=[]) {
  **/
 
 /**
- * Sends parameters of Pact Command to signing API and retrieve a signed Pact Command.
+ * Sends parameters of Pact Command to the Chainweaver signing API and retrieves a signed Pact Command.
  * @param signingCmd - cmd to be sent to signing API
- * @return {object} valid pact API command for send or local use.
+ * @return {object} valid pact ExecCmd for send or local use.
  **/
  const signWallet = async function (signingCmd){
    if (!signingCmd.pactCode) throw new Error(`Pact.wallet.sign(): No Pact Code provided`);
