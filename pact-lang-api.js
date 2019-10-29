@@ -127,7 +127,7 @@ var pullAndCheckHashs = function(sigs) {
 /**
  * Prepare an ExecMsg pact command for use in send or local execution.
  * To use in send, wrap result with 'mkSingleCommand'.
- * @param keyPairs {array or object} - array or single ED25519 keypair and clist
+ * @param keyPairs {array or object} - array or single ED25519 keypair and/or clist
  * @param nonce {string} - nonce value for ensuring unique hash
  * @param pactCode {string} - pact code to execute
  * @param envData {object} - JSON message data for command
@@ -186,7 +186,7 @@ var mkPublicSend = function(cmds) {
 
 /**
  * Make an ED25519 "signer" array element for inclusion in a Pact payload.
- * @param {object} kp - a ED25519 keypair and clist
+ * @param {object} kp - a ED25519 keypair and/or clist
  * @return {object} an object with pubKey, addr and scheme fields.
  */
 var mkSigner = function(kp) {
@@ -357,7 +357,7 @@ var mkReq = function(cmd) {
  * A Command Object to Execute in Pact Server.
  * @typedef {Object} execCmd
  * @property pactCode {string} pact code to execute
- * @property keyPairs {array or object} array or single ED25519 keypair and clist
+ * @property keyPairs {array or object} array or single ED25519 keypair and/or clist
  * @property nonce {string} nonce value, default at current time
  * @property envData {object} JSON message data for command, default at empty obj
  * @property meta {object} meta information, see mkMeta
@@ -422,7 +422,7 @@ const fetchPoll = async function(pollCmd, apiHost) {
  };
 
 /**
-  Signing API functions to interact with Chainweaver wallet
+  Signing API functions to interact with Chainweaver wallet (https://github.com/kadena-io/chainweaver) and its signing API.
  */
 
 /**
@@ -466,7 +466,6 @@ var mkCap = function(role, description, name, args=[]) {
  * @return {object} valid pact API command for send or local use.
  **/
  const signWallet = async function (signingCmd){
-   if (!signingCmd.pactCode) throw new Error(`Pact.wallet.sign(): No Pact Code provided`);
    if (!signingCmd.pactCode) throw new Error(`Pact.wallet.sign(): No Pact Code provided`);
    if (!signingCmd.caps) throw new Error(`Pact.wallet.sign(): No Caps provided`);
    enforceType(signingCmd.pactCode, "string", "pactCode");
