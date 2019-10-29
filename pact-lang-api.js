@@ -467,6 +467,17 @@ var mkCap = function(role, description, name, args=[]) {
  **/
  const signWallet = async function (signingCmd){
    if (!signingCmd.pactCode) throw new Error(`Pact.wallet.sign(): No Pact Code provided`);
+   if (!signingCmd.pactCode) throw new Error(`Pact.wallet.sign(): No Pact Code provided`);
+   if (!signingCmd.caps) throw new Error(`Pact.wallet.sign(): No Caps provided`);
+   enforceType(signingCmd.pactCode, "string", "pactCode");
+   enforceType(signingCmd.caps, "object", "caps");
+   if (signingCmd.envData) enforceType(signingCmd.envData, "object", "envData");
+   if (signingCmd.chainId) enforceType(signingCmd.chainId, "string", "chainId");
+   if (signingCmd.gasLimit) enforceType(signingCmd.gasLimit, "number", "gasLimit");
+   if (signingCmd.ttl) enforceType(signingCmd.ttl, "number", "ttl");
+   if (signingCmd.nonce) enforceType(signingCmd.nonce, "string", "nonce");
+   if (signingCmd.chainId) enforceType(signingCmd.chainId, "string", "chainId");
+
    const cmd = {
      code: signingCmd.pactCode,
      data: signingCmd.envData,
