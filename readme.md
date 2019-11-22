@@ -84,7 +84,7 @@ Simple fetch functions to make API request to a running Pact Server and retrieve
 * A Command Object to Execute in send or local.
 * @typedef {Object} execCmd
 * @property pactCode {string} - pact code to execute
-* @property keyPairs {array or object} - array or single ED25519 keypair and/or clist(list of `cap` in mkCap) 
+* @property keyPairs {array or object} - array or single ED25519 keypair and/or clist(list of `cap` in mkCap)
 * @property nonce {string} - nonce value, default at current time
 * @property envData {object} - JSON message data including keyset information, defaults to empty obj
 * @property meta {object} - meta information, see mkMeta
@@ -127,6 +127,42 @@ Pact.fetch.send([<execCmd:object>], <apiHost:string>) -> {"requestKeys": [...]}
     // Returns the following as a Promise Value
     { "requestKeys": [ "6ue-lrwXaLcDyxDwJ1nuLzOfFtnQ2TaF0_Or_X0KnbE",
                      "P7qDsrt3evfEjtlQAW_b1ZPS7LpAZynCO8wx99hc5i0" ]}
+```
+
+```
+* A Command Object to send Cont request to `/send`. Cont payload allows for continuing or rolling back pacts. (https://pact-language.readthedocs.io/en/latest/pact-reference.html#the-cont-payload)
+* @typedef {Object} contCmd
+* @property keyPairs {array or object} - array or single ED25519 keypair
+* @property nonce {string} - nonce value for ensuring unique hash - default to current time
+* @property step {number} - the step on which pacts the command is sent to - required
+* @property proof {string} - JSON message of SPV proof - not required
+* @property rollback {bool} - Bool of cont message - required
+* @property pactId {string} - pactId of the cont Msg - required
+* @property envData {object} - JSON message data for command - not required
+* @property meta {object} - public meta information, see mkMeta
+* @property networkId {object} network identifier of where the cmd is executed.
+```
+```
+## Make API request to execute a command or commands in the public server and retrieve request keys of the txs.
+
+Pact.fetch.cont([<contCmd:object>], <apiHost:string>) -> {"requestKeys": [...]}
+
+  ex:
+    const cmds = {
+                    keyPairs: KEY_PAIR,
+                    proof:"[proof base64url value]",
+                    data:{
+                     "final-price":12.0
+                    },
+                    pactId:"bNWr_FjKZ2sxzo7NNLTtWA64oysWw6Xqe_PZ_qSeEU0",
+                    rollback:false,
+                    step:1
+                  }
+
+    Pact.fetch.cont(cmds, API_HOST)
+
+    // Returns the following as a Promise Value
+    { "requestKeys": [ "6ue-lrwXaLcDyxDwJ1nuLzOfFtnQ2TaF0_Or_X0KnbE" ]}
 ```
 ```
 ## Make API request to execute a single command in the local server and retrieve the result of the tx. (Used to execute commands that read DB)
@@ -188,7 +224,28 @@ Pact.fetch.listen({listen: "..."}, <apiHost:string>) -> {status: "...", data: ".
     { "status": "success",
       "data": "Write succeeded" }
 ```
+```
+/**
+ * A SPV Command Object to Execute in Pact Server.
+ * @typedef {Object} spvCmd
+ * @property requestKey {string} pactId of the SPV transaction
+ * @property targetChainId {string} chainId of target chain of SPV transaction
+ */
+```
+```
+## Make API request to retrieve proof of SPV request.
+Pact.fetch.spv([<spvCmd:object>], <apiHost:string>) -> "[proof base64url value]"
 
+   ex:
+     const cmd = { requestKey: "CzZzVpxdQHiL7tmqNnAeCB0qX-nXyqFYAystzNlrBhw",
+                   targetChainId: "1" }
+
+     Pact.fetch.spv(cmd, API_HOST)
+
+     // Returns the following as a Promise Value
+     [proof base64url value]
+
+```
 
 ### Chainweaver Signing API Command
 

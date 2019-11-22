@@ -161,6 +161,48 @@ var prepareExecCmd = function(keyPairs, nonce=new Date().toISOString(), pactCode
 };
 
 /**
+ * Prepare an ContMsg pact command for use in send or local execution.
+ * To use in send, wrap result with 'mkSingleCommand'.
+ * @param keyPairs {array or object} - array or single ED25519 keypair
+ * @param nonce {string} - nonce value for ensuring unique hash - default to current time
+ * @param step {number} - the step on which pacts the command is sent to - required
+ * @param proof {string} - JSON message of SPV proof - not required
+ * @param rollback {bool} - Bool of cont message - required
+ * @param pactId {string} - pactId of the cont Msg - required
+ * @param envData {object} - JSON message data for command - not required
+ * @param meta {object} - public meta information, see mkMeta
+ * @return valid pact API Cont command for send or local use.
+ */
+var prepareContCmd = function(keyPairs, nonce=new Date().toISOString(),
+                              proof, pactId, rollback, step, envData,
+                              meta=mkMeta("","",0,0,0,0), networkId=null) {
+
+  enforceType(nonce, "string", "nonce");
+  var kpArray = asArray(keyPairs);
+  var signers = kpArray.map(mkSigner);
+  var cmdJSON = {
+    networkId: networkId,
+    payload: {
+      cont: {
+        proof: proof || null,
+        pactId: pactId,
+        rollback: rollback,
+        step: step,
+        data: envData || {},
+      }
+    },
+    signers: signers,
+    meta: meta,
+    nonce: JSON.stringify(nonce)
+  };
+  var cmd = JSON.stringify(cmdJSON);
+  var sigs = kpArray.map(function(kp) {
+    return sign(cmd, kp);
+  });
+  return mkSingleCmd(sigs, cmd);
+};
+
+/**
  * Makes a single command given signed data.
  * @param sigs {array} - array of signature objects, see 'sign'
  * @param cmd {string} - stringified JSON blob used to create hash
@@ -223,6 +265,13 @@ var enforceArray = function(val, msg) {
  */
 var simpleExecCommand = function(keyPairs, nonce, pactCode, envData, meta) {
   return mkPublicSend(prepareExecCmd(keyPairs, nonce, pactCode, envData, meta));
+};
+
+/**
+ * Make a full 'send' endpoint cont command. See 'prepareContCmd' for parameters.
+ */
+var simpleContCommand = function(keyPairs, nonce, step, pactId, rollback, envData, meta, proof) {
+  return mkPublicSend(prepareContCmd(keyPairs, nonce, proof, pactId, rollback, step, envData, meta));
 };
 
 var unique = function(arr) {
@@ -364,6 +413,20 @@ var mkReq = function(cmd) {
  * @property networkId {object} network identifier of where the cmd is executed.
  */
 
+ /**
+  * A Cont Object to Execute in Pact Server.
+  * @typedef {Object} contCmd
+  * @property pactId {string} - pactId of the cont Msg - required
+  * @property keyPairs {array or object} - array or single ED25519 keypair and/or clist (list of `cap` in mkCap)
+  * @property nonce {string} - nonce value to ensure unique hash - default to current time
+  * @property step {number} - the step of the mutli-step transaction - required
+  * @property proof {string} - JSON message of SPV proof - required for cross-chain transaction
+  * @property rollback {bool} - boolean value of rollback - required
+  * @property envData {object} - JSON message data for command - not required
+  * @property meta {object} - public meta information, see mkMeta
+  * @property networkId {object} network identifier of where the cmd is executed.
+  */
+
 /**
  * Sends Pact command to a running Pact server and retrieves tx result.
  * @param {[execCmd] or execCmd} sendCmd cmd or a list of cmd's to execute
@@ -372,8 +435,49 @@ var mkReq = function(cmd) {
  */
 const fetchSend = async function(sendCmd, apiHost){
   if (!apiHost)  throw new Error(`Pact.fetch.send(): No apiHost provided`);
-  const sendCmds = asArray(sendCmd).map(cmd => prepareExecCmd(cmd.keyPairs, cmd.nonce, cmd.pactCode, cmd.envData, cmd.meta, cmd.networkId));
+  const sendCmds = asArray(sendCmd).map(cmd =>
+    prepareExecCmd( cmd.keyPairs, cmd.nonce, cmd.pactCode,
+                    cmd.envData, cmd.meta, cmd.networkId ));
   const txRes = await fetch(`${apiHost}/api/v1/send`, mkReq(mkPublicSend(sendCmds)));
+  const tx = await txRes.json();
+  return tx;
+};
+
+/**
+ * Sends Pact command to a running Pact server and retrieves tx result.
+ * @param {[execCmd] or execCmd} sendCmd cmd or a list of cmd's to execute
+ * @param {string} apiHost host running Pact server
+ * @return {object} Request key of the tx received from pact server.
+ */
+const fetchSendCont = async function(contCmd, apiHost){
+  if (!apiHost)  throw new Error(`Pact.fetch.cont(): No apiHost provided`);
+  const sendConts = asArray(contCmd).map(cont =>
+    prepareContCmd( cont.keyPairs, cont.nonce, cont.proof, cont.pactId,
+                    cont.rollback, cont.step, cont.envData, cont.meta,
+                    cont.networkId ))
+  const txRes = await fetch(`${apiHost}/api/v1/send`, mkReq(mkPublicSend(sendConts)));
+  const tx = await txRes.json();
+  return tx;
+};
+
+/**
+ * A SPV Command Object to Execute in Pact Server.
+ * @typedef {Object} spvCmd
+ * @property requestKey {string} pactId of the cross-chain transaction
+ * @property targetChainId {string} chainId of target chain of the cross-chain transaction
+ */
+
+/**
+ * Sends request to /spv to fetch SPV proof.
+ * @param {spvCmd} spvCmd see spvCmd
+ * @param {string} apiHost host running Pact server
+ * @return {string} SPV proof received from pact server.
+ */
+const fetchSPV = async function(spvCmd, apiHost){
+  if (!apiHost)  throw new Error(`Pact.fetch.spv(): No apiHost provided`);
+  enforceType(spvCmd.targetChainId, "string", "targetChainId");
+  enforceType(spvCmd.pactId, "string", "pactId");
+  const txRes = await fetch(`${apiHost}/spv`, mkReq(spvCmd));
   const tx = await txRes.json();
   return tx;
 };
@@ -518,6 +622,7 @@ module.exports = {
     toTweetNaclSecretKey: toTweetNaclSecretKey
   },
   api: {
+    prepareContCmd: prepareContCmd,
     prepareExecCmd: prepareExecCmd,
     mkSingleCmd: mkSingleCmd,
     mkPublicSend: mkPublicSend
@@ -528,6 +633,9 @@ module.exports = {
     mkCap: mkCap
   },
   simple: {
+    cont: {
+      createCommand: simpleContCommand
+    },
     exec: {
       createCommand: simpleExecCommand,
       createLocalCommand: prepareExecCmd,
@@ -537,6 +645,8 @@ module.exports = {
   },
   fetch: {
     send: fetchSend,
+    cont: fetchSendCont,
+    spv: fetchSPV,
     local: fetchLocal,
     poll: fetchPoll,
     listen: fetchListen
