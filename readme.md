@@ -81,12 +81,17 @@ e.g. `JSON.stringify(.0000001) -> '1e-7'` is incorrect as Pact has infinite prec
 Simple fetch functions to make API request to a running Pact Server and retrieve the results.
 
 ```
-* A Command Object to Execute in send or local.
+* A "exec" or "cont" Command Object to Execute in send or local.
 * @typedef {Object} execCmd
-* @property pactCode {string} - pact code to execute
+* @property type {string} - type of command - "cont" or "exec", default to "exec"
+* @property pactCode {string} - pact code to execute in "exec" command - required for "exec"
+* @property rollback {boolean} - boolean of rollback status - required for "cont"
+* @property step {number} - the step on which pacts the command is sent to - required for "cont"
+* @property pactId {string} - pactId of the cont command - required for "cont"
+* @property proof {string} - JSON message of SPV proof - required for cross-chain transaction
 * @property keyPairs {array or object} - array or single ED25519 keypair and/or clist(list of `cap` in mkCap)
 * @property nonce {string} - nonce value, default at current time
-* @property envData {object} - JSON message data including keyset information, defaults to empty obj
+* @property envData {object} - JSON message of data including keyset information, defaults to empty obj
 * @property meta {object} - meta information, see mkMeta
 * @property networkId {object} network identifier of where the cmd is executed.
 */
@@ -101,7 +106,7 @@ Pact.fetch.send([<execCmd:object>], <apiHost:string>) -> {"requestKeys": [...]}
                   // create an account with single-sig keyset
                   {
                      keyPairs: KEY_PAIR,
-                     pactCode: "(accounts.create-account 'account-1 (read-keyset 'account-keyset))",
+                     pactCode: "(coin.create-account 'account-1 (read-keyset 'account-keyset))",
                      envData: {
                        "account-keyset": ["368820f80c324bbc7c2b0610688a7da43e39f91d118732671cd9c7500ff43cca"],
                      }
@@ -109,7 +114,7 @@ Pact.fetch.send([<execCmd:object>], <apiHost:string>) -> {"requestKeys": [...]}
                   // create an account with multi-sig keyset
                   {
                     keyPairs: KEY_PAIR,
-                    pactCode: "(accounts.create-account 'account2 (read-keyset 'account-keyset))",
+                    pactCode: "(coin.create-account 'account2 (read-keyset 'account-keyset))",
                     envData: {
                       "account-keyset": {
                         "keys": [
@@ -126,43 +131,7 @@ Pact.fetch.send([<execCmd:object>], <apiHost:string>) -> {"requestKeys": [...]}
 
     // Returns the following as a Promise Value
     { "requestKeys": [ "6ue-lrwXaLcDyxDwJ1nuLzOfFtnQ2TaF0_Or_X0KnbE",
-                     "P7qDsrt3evfEjtlQAW_b1ZPS7LpAZynCO8wx99hc5i0" ]}
-```
-
-```
-* A Command Object to send Cont request to `/send`. Cont payload allows for continuing or rolling back pacts. (https://pact-language.readthedocs.io/en/latest/pact-reference.html#the-cont-payload)
-* @typedef {Object} contCmd
-* @property keyPairs {array or object} - array or single ED25519 keypair
-* @property nonce {string} - nonce value for ensuring unique hash - default to current time
-* @property step {number} - the step on which pacts the command is sent to - required
-* @property proof {string} - JSON message of SPV proof - not required
-* @property rollback {bool} - Bool of cont message - required
-* @property pactId {string} - pactId of the cont Msg - required
-* @property envData {object} - JSON message data for command - not required
-* @property meta {object} - public meta information, see mkMeta
-* @property networkId {object} network identifier of where the cmd is executed.
-```
-```
-## Make API request to execute a command or commands in the public server and retrieve request keys of the txs.
-
-Pact.fetch.cont([<contCmd:object>], <apiHost:string>) -> {"requestKeys": [...]}
-
-  ex:
-    const cmds = {
-                    keyPairs: KEY_PAIR,
-                    proof:"[proof base64url value]",
-                    data:{
-                     "final-price":12.0
-                    },
-                    pactId:"bNWr_FjKZ2sxzo7NNLTtWA64oysWw6Xqe_PZ_qSeEU0",
-                    rollback:false,
-                    step:1
-                  }
-
-    Pact.fetch.cont(cmds, API_HOST)
-
-    // Returns the following as a Promise Value
-    { "requestKeys": [ "6ue-lrwXaLcDyxDwJ1nuLzOfFtnQ2TaF0_Or_X0KnbE" ]}
+                       "P7qDsrt3evfEjtlQAW_b1ZPS7LpAZynCO8wx99hc5i0" ]}
 ```
 ```
 ## Make API request to execute a single command in the local server and retrieve the result of the tx. (Used to execute commands that read DB)
@@ -171,25 +140,33 @@ Pact.fetch.local(<execCmd:object>, <apiHost:string>) -> {result}
   ex:     
     const cmd = {
         keyPairs: KEY_PAIR,
-        pactCode: `(accounts.read-account 'account1)`
+        pactCode: `(coin.details 'account1)`
       };
 
     Pact.fetch.local(cmd, API_HOST)
 
     // Returns the following as a Promise Value
-    { "status": "success",
-      "data": {
-        "keyset": {
-           "pred": "keys-all",
-           "keys": ["368820f80c324bbc7c2b0610688a7da43e39f91d118732671cd9c7500ff43cca"]
-        },
-        "balance": 0.0
-      }
-    }
+    { gas: 0,
+      result: { status: 'success', data: 'Write succeeded' },
+      reqKey: 'ZWsF84CuKVq4qxjFrgbBr15EHbhKxaeAP6S6qRTWkmY',
+      logs: 'wsATyGqckuIvlm89hhd2j4t6RMkCrcwJe_oeCYr7Th8',
+      metaData:
+       { publicMeta:
+          { creationTime: 1574809666,
+            ttl: 28800,
+            gasLimit: 10000,
+            chainId: '0',
+            gasPrice: 1e-9,
+            sender: 'sender00' },
+         blockTime: 0,
+         prevBlockHash: '',
+         blockHeight: 0 },
+      continuation: null,
+      txId: null }
 ```
 ```
 ## Make API request to retrieve result of a tx or multiple tx's with request keys.
-Pact.fetch.poll({requestKeys: ["..."]}, <apiHost:string>) -> [{requestKey: "...", result: {...}}, ...]
+Pact.fetch.poll({requestKeys: ["..."]}, <apiHost:string>) -> {result}
 
   ex:
     const cmd = { requestKeys: [ "6ue-lrwXaLcDyxDwJ1nuLzOfFtnQ2TaF0_Or_X0KnbE",
@@ -198,31 +175,41 @@ Pact.fetch.poll({requestKeys: ["..."]}, <apiHost:string>) -> [{requestKey: "..."
     Pact.fetch.poll(cmd, API_HOST)
 
     // Returns the following as a Promise Value
-    [{ "reqKey": "6ue-lrwXaLcDyxDwJ1nuLzOfFtnQ2TaF0_Or_X0KnbE",
-       "result": {
-         "status": "success",
-         "data": "Write succeeded"
-       }
-     },
-     { "reqKey": "P7qDsrt3evfEjtlQAW_b1ZPS7LpAZynCO8wx99hc5i0",
-       "result": {
-         "status": "success",
-         "data": "Write succeeded"
-       }
-     }]
+    { 6ue-lrwXaLcDyxDwJ1nuLzOfFtnQ2TaF0_Or_X0KnbE:
+        { gas: 6296,
+          result: { status: 'success', data: 'Write succeeded' },
+          reqKey: '6ue-lrwXaLcDyxDwJ1nuLzOfFtnQ2TaF0_Or_X0KnbE',
+          logs: 'IVz-tGIp3TwibAqlq6UGt4yFiJ-d9sqvcbWVTEs_e68',
+          metaData: null,
+          continuation: null,
+          txId: 702717 },
+      P7qDsrt3evfEjtlQAW_b1ZPS7LpAZynCO8wx99hc5i0:
+        { gas: 6296,
+          result: { status: 'success', data: 'Write succeeded' },
+          reqKey: 'P7qDsrt3evfEjtlQAW_b1ZPS7LpAZynCO8wx99hc5i0',
+          logs: 'sSDqe9W36P43WEUfdyBRB7m-t0qQZjVRtu5jdElfMzgs',
+          metaData: null,
+          continuation: null,
+          txId: 702717 }
+      }
 ```
 ```
 ## Make API request to retrieve result of a tx with a request key.
 Pact.fetch.listen({listen: "..."}, <apiHost:string>) -> {status: "...", data: "..."}
 
   ex:
-    const cmd = { listen: "6ue-lrwXaLcDyxDwJ1nuLzOfFtnQ2TaF0_Or_X0KnbE" }
+    const cmd = { listen: "P7qDsrt3evfEjtlQAW_b1ZPS7LpAZynCO8wx99hc5i0" }
 
     Pact.fetch.listen(cmd, API_HOST)
 
     // Returns the following as a Promise Value
-    { "status": "success",
-      "data": "Write succeeded" }
+    { gas: 6296,
+      result: { status: 'success', data: 'Write succeeded' },
+      reqKey: 'P7qDsrt3evfEjtlQAW_b1ZPS7LpAZynCO8wx99hc5i0',
+      logs: 'IVz-tGIp3TwibAqlq6UGt4yFiJ-d9sqvcbWVTEs_e68',
+      metaData: null,
+      continuation: null,
+      txId: 702717 }
 ```
 ```
 /**

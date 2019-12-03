@@ -263,8 +263,8 @@ var enforceArray = function(val, msg) {
 /**
  * Make a full 'send' endpoint exec command. See 'prepareExecCmd' for parameters.
  */
-var simpleExecCommand = function(keyPairs, nonce, pactCode, envData, meta) {
-  return mkPublicSend(prepareExecCmd(keyPairs, nonce, pactCode, envData, meta));
+var simpleExecCommand = function(keyPairs, nonce, pactCode, envData, meta, networkId) {
+  return mkPublicSend(prepareExecCmd(keyPairs, nonce, pactCode, envData, meta, networkId));
 };
 
 /**
@@ -402,26 +402,28 @@ var mkReq = function(cmd) {
   };
 };
 
-/**
- * A Command Object to Execute in Pact Server.
- * @typedef {Object} execCmd
- * @property pactCode {string} pact code to execute
- * @property keyPairs {array or object} array or single ED25519 keypair and/or clist (list of `cap` in mkCap)
- * @property nonce {string} nonce value, default at current time
- * @property envData {object} JSON message data for command, default at empty obj
- * @property meta {object} meta information, see mkMeta
- * @property networkId {object} network identifier of where the cmd is executed.
- */
+
 
  /**
-  * A Cont Object to Execute in Pact Server.
-  * @typedef {Object} contCmd
-  * @property pactId {string} - pactId of the cont Msg - required
-  * @property keyPairs {array or object} - array or single ED25519 keypair and/or clist (list of `cap` in mkCap)
+  * A execCmd Object to Execute in send or local.
+  * @typedef {Object} cmd to `/send` endpoint
+  * @property type {string} - type of command - "cont" or "exec", default to "exec"
+  * @property pactCode {string} - pact code to execute in "exec" command - required for "exec"
   * @property nonce {string} - nonce value to ensure unique hash - default to current time
-  * @property step {number} - the step of the mutli-step transaction - required
+  * @property envData {object} - JSON message data for command - not required
+  * @property meta {object} - public meta information, see mkMeta
+  * @property networkId {object} network identifier of where the cmd is executed.
+  */
+
+ /**
+  * A contCmd to Execute in send
+  * @typedef {Object} cmd to `/send` endpoint
+  * @property type {string} - type of command - "cont" or "exec", default to "exec"
+  * @property pactId {string} - pactId the cont command - required for "cont"
+  * @property nonce {string} - nonce value to ensure unique hash - default to current time
+  * @property step {number} - the step of the mutli-step transaction - required for "cont"
   * @property proof {string} - JSON message of SPV proof - required for cross-chain transaction
-  * @property rollback {bool} - boolean value of rollback - required
+  * @property rollback {bool} - boolean value of rollback - required for "cont"
   * @property envData {object} - JSON message data for command - not required
   * @property meta {object} - public meta information, see mkMeta
   * @property networkId {object} network identifier of where the cmd is executed.
@@ -429,33 +431,23 @@ var mkReq = function(cmd) {
 
 /**
  * Sends Pact command to a running Pact server and retrieves tx result.
- * @param {[execCmd] or execCmd} sendCmd cmd or a list of cmd's to execute
+ * @param {[execCmd or contCmd] or execCmd or contCmt} cmd or a list of cmds to execute
  * @param {string} apiHost host running Pact server
  * @return {object} Request key of the tx received from pact server.
  */
 const fetchSend = async function(sendCmd, apiHost){
   if (!apiHost)  throw new Error(`Pact.fetch.send(): No apiHost provided`);
-  const sendCmds = asArray(sendCmd).map(cmd =>
-    prepareExecCmd( cmd.keyPairs, cmd.nonce, cmd.pactCode,
-                    cmd.envData, cmd.meta, cmd.networkId ));
+  const sendCmds = asArray(sendCmd).map(cmd => {
+    if (cmd.type === "cont") {
+      return prepareContCmd( cmd.keyPairs, cmd.nonce, cmd.proof, cmd.pactId,
+                             cmd.rollback, cmd.step, cmd.envData, cmd.meta,
+                             cmd.networkId )
+    } else {
+      return prepareExecCmd( cmd.keyPairs, cmd.nonce, cmd.pactCode,
+                             cmd.envData, cmd.meta, cmd.networkId )
+    }
+  })
   const txRes = await fetch(`${apiHost}/api/v1/send`, mkReq(mkPublicSend(sendCmds)));
-  const tx = await txRes.json();
-  return tx;
-};
-
-/**
- * Sends Pact command to a running Pact server and retrieves tx result.
- * @param {[execCmd] or execCmd} sendCmd cmd or a list of cmd's to execute
- * @param {string} apiHost host running Pact server
- * @return {object} Request key of the tx received from pact server.
- */
-const fetchSendCont = async function(contCmd, apiHost){
-  if (!apiHost)  throw new Error(`Pact.fetch.cont(): No apiHost provided`);
-  const sendConts = asArray(contCmd).map(cont =>
-    prepareContCmd( cont.keyPairs, cont.nonce, cont.proof, cont.pactId,
-                    cont.rollback, cont.step, cont.envData, cont.meta,
-                    cont.networkId ))
-  const txRes = await fetch(`${apiHost}/api/v1/send`, mkReq(mkPublicSend(sendConts)));
   const tx = await txRes.json();
   return tx;
 };
@@ -471,12 +463,12 @@ const fetchSendCont = async function(contCmd, apiHost){
  * Sends request to /spv to fetch SPV proof.
  * @param {spvCmd} spvCmd see spvCmd
  * @param {string} apiHost host running Pact server
- * @return {string} SPV proof received from pact server.
+ * @return {string} SPV proof received from Pact server.
  */
 const fetchSPV = async function(spvCmd, apiHost){
   if (!apiHost)  throw new Error(`Pact.fetch.spv(): No apiHost provided`);
   enforceType(spvCmd.targetChainId, "string", "targetChainId");
-  enforceType(spvCmd.pactId, "string", "pactId");
+  enforceType(spvCmd.requestKey, "string", "requestKey");
   const txRes = await fetch(`${apiHost}/spv`, mkReq(spvCmd));
   const tx = await txRes.json();
   return tx;
@@ -490,15 +482,15 @@ const fetchSPV = async function(spvCmd, apiHost){
  */
 const fetchLocal = async function(localCmd, apiHost) {
   if (!apiHost)  throw new Error(`Pact.fetch.local(): No apiHost provided`);
-  const {keyPairs, nonce, pactCode, envData, meta, networkId} = localCmd
-  const cmd = prepareExecCmd(keyPairs, nonce, pactCode, envData, meta, networkId);
+  const {keyPairs, nonce, pactCode, envData, meta} = localCmd
+  const cmd = prepareExecCmd(keyPairs, nonce, pactCode, envData, meta);
   const txRes = await fetch(`${apiHost}/api/v1/local`, mkReq(cmd));
   const tx = await txRes.json();
-  return tx.result;
+  return tx;
 };
 
 /**
- * Request poll Pact command to a running Pact server and retrieves tx result.
+ * Poll result of Pact command to a running Pact server and retrieves tx result.
  * @param {{requestKeys: [<rk:string>]}} pollCmd request Keys of txs to poll.
  * @param {string} apiHost host running Pact server
  * @return {object} Array of tx request keys and tx results from pact server.
@@ -507,13 +499,11 @@ const fetchPoll = async function(pollCmd, apiHost) {
   if (!apiHost)  throw new Error(`Pact.fetch.poll(): No apiHost provided`);
   const res = await fetch(`${apiHost}/api/v1/poll`, mkReq(pollCmd));
   const resJSON = await res.json();
-  return Object.values(resJSON).map(res => {
-    return { reqKey: res.reqKey, result: res.result };
-  });
+  return resJSON;
 };
 
 /**
- * Request listen Pact command to a running Pact server and retrieves tx result.
+ * Listen result of Pact command to a running Pact server and retrieves tx result.
  * @param {{listenCmd: <rk:string>}} listenCmd reqest key of tx to listen.
  * @param {string} apiHost host running Pact server
  * @return {object} Object containing tx result from pact server
@@ -522,7 +512,7 @@ const fetchPoll = async function(pollCmd, apiHost) {
    if (!apiHost)  throw new Error(`Pact.fetch.listen(): No apiHost provided`);
    const res = await fetch(`${apiHost}/api/v1/listen`, mkReq(listenCmd));
    const resJSON = await res.json();
-   return resJSON.result;
+   return resJSON;
  };
 
 /**
@@ -645,14 +635,14 @@ module.exports = {
   },
   fetch: {
     send: fetchSend,
-    cont: fetchSendCont,
-    spv: fetchSPV,
     local: fetchLocal,
     poll: fetchPoll,
-    listen: fetchListen
+    listen: fetchListen,
+    spv: fetchSPV
   },
   wallet: {
     sign: signWallet,
     sendSigned: sendSigned
   }
 };
+//
