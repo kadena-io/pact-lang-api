@@ -81,25 +81,36 @@ e.g. `JSON.stringify(.0000001) -> '1e-7'` is incorrect as Pact has infinite prec
 Simple fetch functions to make API request to a running Pact Server and retrieve the results.
 
 ```
-* A "exec" or "cont" Command Object to Execute in send or local.
-* @typedef {Object} execCmd
-* @property type {string} - type of command - "cont" or "exec", default to "exec"
-* @property pactCode {string} - pact code to execute in "exec" command - required for "exec"
-* @property rollback {boolean} - boolean of rollback status - required for "cont"
-* @property step {number} - the step on which pacts the command is sent to - required for "cont"
-* @property pactId {string} - pactId of the cont command - required for "cont"
-* @property proof {string} - JSON message of SPV proof - required for cross-chain transaction
-* @property keyPairs {array or object} - array or single ED25519 keypair and/or clist(list of `cap` in mkCap)
-* @property nonce {string} - nonce value, default at current time
-* @property envData {object} - JSON message of data including keyset information, defaults to empty obj
-* @property meta {object} - meta information, see mkMeta
-* @property networkId {object} network identifier of where the cmd is executed.
-*/
+/**
+ * An execCmd Object to Execute in send or local.
+ * @typedef {Object} cmd to `/send` endpoint
+ * @property type {string} - type of command - "cont" or "exec", default to "exec"
+ * @property pactCode {string} - pact code to execute in "exec" command - required for "exec"
+ * @property nonce {string} - nonce value to ensure unique hash - default to current time
+ * @property envData {object} - JSON of data in command - not required
+ * @property meta {object} - public meta information, see mkMeta
+ * @property networkId {object} network identifier of where the cmd is executed.
+ */
+```
+```
+/**
+ * A contCmd to Execute in send
+ * @typedef {Object} cmd to `/send` endpoint
+ * @property type {string} - type of command - "cont" or "exec", default to "exec"
+ * @property pactId {string} - pactId the cont command - required for "cont"
+ * @property nonce {string} - nonce value to ensure unique hash - default to current time
+ * @property step {number} - the step of the mutli-step transaction - required for "cont"
+ * @property proof {string} - JSON of SPV proof, required for cross-chain transfer. See `fetchSPV` below
+ * @property rollback {bool} - Indicates if this continuation is a rollback/cancel - required for "cont"
+ * @property envData {object} - JSON of data in command - not required
+ * @property meta {object} - public meta information, see mkMeta
+ * @property networkId {object} network identifier of where the cmd is executed.
+ */
 ```
 ```
 ## Make API request to execute a command or commands in the public server and retrieve request keys of the txs.
 
-Pact.fetch.send([<execCmd:object>], <apiHost:string>) -> {"requestKeys": [...]}
+Pact.fetch.send([<execCmd:object> or <contCmd:object>], <apiHost:string>) -> {"requestKeys": [...]}
 
   ex:
     const cmds = [
@@ -239,15 +250,15 @@ Pact.fetch.spv([<spvCmd:object>], <apiHost:string>) -> "[proof base64url value]"
 Simple functions to interact with Chainweaver wallet (https://github.com/kadena-io/chainweaver) and its signing API.
 
 ```
- * A signingCmd Object to be sent to the signing API
- * @typedef {Object} signingCmd - cmd to be sent to signing API
+ * A signingCmd Object to send to signing API
+ * @typedef {Object} signingCmd - cmd to send to signing API
  * @property pactCode {string} - Pact code to execute - required
  * @property caps {array or object} - Pact capability to be signed, see mkCap - required
- * @property envData {object} - JSON message data for command - optional
+ * @property envData {object} - JSON of data in command - optional
  * @property sender {string} - sender field in meta, see mkMeta - optional
  * @property chainId {string} - chainId field in meta, see mkMeta - optional
  * @property gasLimit {number} - gasLimit field in meta, see mkMeta - optional
- * @property nonce {string} - nonce value for ensuring unique hash - optional
+ * @property nonce {string} - nonce value for ensuring unique hash, default to current time - optional
  **/
 ```
 

@@ -128,9 +128,9 @@ var pullAndCheckHashs = function(sigs) {
  * Prepare an ExecMsg pact command for use in send or local execution.
  * To use in send, wrap result with 'mkSingleCommand'.
  * @param keyPairs {array or object} - array or single ED25519 keypair and/or clist (list of `cap` in mkCap)
- * @param nonce {string} - nonce value for ensuring unique hash
- * @param pactCode {string} - pact code to execute
- * @param envData {object} - JSON message data for command
+ * @param nonce {string} - nonce value for ensuring unique hash - default to current time
+ * @param pactCode {string} - pact code to execute - required
+ * @param envData {object} - JSON of data in command - not required
  * @param meta {object} - public meta information, see mkMeta
  * @return valid pact API command for send or local use.
  */
@@ -163,13 +163,13 @@ var prepareExecCmd = function(keyPairs, nonce=new Date().toISOString(), pactCode
 /**
  * Prepare an ContMsg pact command for use in send or local execution.
  * To use in send, wrap result with 'mkSingleCommand'.
- * @param keyPairs {array or object} - array or single ED25519 keypair
+ * @param keyPairs {array or object} - array or single ED25519 keypair and/or clist (list of `cap` in mkCap)
  * @param nonce {string} - nonce value for ensuring unique hash - default to current time
- * @param step {number} - the step on which pacts the command is sent to - required
- * @param proof {string} - JSON message of SPV proof - not required
- * @param rollback {bool} - Bool of cont message - required
- * @param pactId {string} - pactId of the cont Msg - required
- * @param envData {object} - JSON message data for command - not required
+ * @param step {number} - integer index of step to execute in defpact body - required
+ * @param proof {string} - JSON of SPV proof, required for cross-chain transfer. See `fetchSPV` below
+ * @param rollback {bool} - Indicates if this continuation is a rollback/cancel- required
+ * @param pactId {string} - identifies the already-begun Pact execution that this is continuing - required
+ * @param envData {object} - JSON of data in command - not required
  * @param meta {object} - public meta information, see mkMeta
  * @return valid pact API Cont command for send or local use.
  */
@@ -405,12 +405,12 @@ var mkReq = function(cmd) {
 
 
  /**
-  * A execCmd Object to Execute in send or local.
+  * An execCmd Object to Execute in send or local.
   * @typedef {Object} cmd to `/send` endpoint
   * @property type {string} - type of command - "cont" or "exec", default to "exec"
   * @property pactCode {string} - pact code to execute in "exec" command - required for "exec"
   * @property nonce {string} - nonce value to ensure unique hash - default to current time
-  * @property envData {object} - JSON message data for command - not required
+  * @property envData {object} - JSON of data in command - not required
   * @property meta {object} - public meta information, see mkMeta
   * @property networkId {object} network identifier of where the cmd is executed.
   */
@@ -422,16 +422,16 @@ var mkReq = function(cmd) {
   * @property pactId {string} - pactId the cont command - required for "cont"
   * @property nonce {string} - nonce value to ensure unique hash - default to current time
   * @property step {number} - the step of the mutli-step transaction - required for "cont"
-  * @property proof {string} - JSON message of SPV proof - required for cross-chain transaction
-  * @property rollback {bool} - boolean value of rollback - required for "cont"
-  * @property envData {object} - JSON message data for command - not required
+  * @property proof {string} - JSON of SPV proof, required for cross-chain transfer. See `fetchSPV` below
+  * @property rollback {bool} - Indicates if this continuation is a rollback/cancel - required for "cont"
+  * @property envData {object} - JSON of data in command - not required
   * @property meta {object} - public meta information, see mkMeta
   * @property networkId {object} network identifier of where the cmd is executed.
   */
 
 /**
  * Sends Pact command to a running Pact server and retrieves tx result.
- * @param {[execCmd or contCmd] or execCmd or contCmt} cmd or a list of cmds to execute
+ * @param {[execCmd or contCmd] or execCmd or contCmd} cmd or a list of cmds to execute
  * @param {string} apiHost host running Pact server
  * @return {object} Request key of the tx received from pact server.
  */
@@ -490,7 +490,7 @@ const fetchLocal = async function(localCmd, apiHost) {
 };
 
 /**
- * Poll result of Pact command to a running Pact server and retrieves tx result.
+ * Poll result of Pact command on a Pact server and retrieve tx result.
  * @param {{requestKeys: [<rk:string>]}} pollCmd request Keys of txs to poll.
  * @param {string} apiHost host running Pact server
  * @return {object} Array of tx request keys and tx results from pact server.
@@ -503,7 +503,7 @@ const fetchPoll = async function(pollCmd, apiHost) {
 };
 
 /**
- * Listen result of Pact command to a running Pact server and retrieves tx result.
+ * Listen for result of Pact command on a Pact server and retrieve tx result.
  * @param {{listenCmd: <rk:string>}} listenCmd reqest key of tx to listen.
  * @param {string} apiHost host running Pact server
  * @return {object} Object containing tx result from pact server
@@ -543,11 +543,11 @@ var mkCap = function(role, description, name, args=[]) {
 };
 
 /**
- * A signingCmd Object to be sent to signing API
- * @typedef {Object} signingCmd - cmd to be sent to signing API
+ * A signingCmd Object to send to signing API
+ * @typedef {Object} signingCmd - cmd to send to signing API
  * @property pactCode {string} - Pact code to execute - required
  * @property caps {array or object} - Pact capability to be signed, see mkCap - required
- * @property envData {object} - JSON message data for command - optional
+ * @property envData {object} - JSON of data in command - optional
  * @property sender {string} - sender field in meta, see mkMeta - optional
  * @property chainId {string} - chainId field in meta, see mkMeta - optional
  * @property gasLimit {number} - gasLimit field in meta, see mkMeta - optional
@@ -645,4 +645,3 @@ module.exports = {
     sendSigned: sendSigned
   }
 };
-//
