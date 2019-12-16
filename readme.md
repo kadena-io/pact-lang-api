@@ -82,8 +82,8 @@ Simple fetch functions to make API request to a running Pact Server and retrieve
 
 ```
 /**
- * An execCmd Object to Execute in send or local.
- * @typedef {Object} cmd to `/send` endpoint
+ * An execCmd Object to Execute at /send or /local endpoint.
+ * @typedef {Object} execCmd
  * @property type {string} - type of command - "cont" or "exec", default to "exec"
  * @property pactCode {string} - pact code to execute in "exec" command - required for "exec"
  * @property nonce {string} - nonce value to ensure unique hash - default to current time
@@ -94,8 +94,8 @@ Simple fetch functions to make API request to a running Pact Server and retrieve
 ```
 ```
 /**
- * A contCmd to Execute in send
- * @typedef {Object} cmd to `/send` endpoint
+ * A contCmd to Execute at /send endpoint
+ * @typedef {Object} contCmd
  * @property type {string} - type of command - "cont" or "exec", default to "exec"
  * @property pactId {string} - pactId the cont command - required for "cont"
  * @property nonce {string} - nonce value to ensure unique hash - default to current time
@@ -224,7 +224,7 @@ Pact.fetch.listen({listen: "..."}, <apiHost:string>) -> {status: "...", data: ".
 ```
 ```
 /**
- * A SPV Command Object to Execute in Pact Server.
+ * A SPV Command Object to Execute at /spv endpoint.
  * @typedef {Object} spvCmd
  * @property requestKey {string} pactId of the SPV transaction
  * @property targetChainId {string} chainId of target chain of SPV transaction
