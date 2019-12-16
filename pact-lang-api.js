@@ -270,8 +270,8 @@ var simpleExecCommand = function(keyPairs, nonce, pactCode, envData, meta, netwo
 /**
  * Make a full 'send' endpoint cont command. See 'prepareContCmd' for parameters.
  */
-var simpleContCommand = function(keyPairs, nonce, step, pactId, rollback, envData, meta, proof) {
-  return mkPublicSend(prepareContCmd(keyPairs, nonce, proof, pactId, rollback, step, envData, meta));
+var simpleContCommand = function(keyPairs, nonce, step, pactId, rollback, envData, meta, proof, networkId) {
+  return mkPublicSend(prepareContCmd(keyPairs, nonce, proof, pactId, rollback, step, envData, meta, networkId));
 };
 
 var unique = function(arr) {
