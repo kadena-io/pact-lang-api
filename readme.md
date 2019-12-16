@@ -81,27 +81,43 @@ e.g. `JSON.stringify(.0000001) -> '1e-7'` is incorrect as Pact has infinite prec
 Simple fetch functions to make API request to a running Pact Server and retrieve the results.
 
 ```
-* A Command Object to Execute in send or local.
-* @typedef {Object} execCmd
-* @property pactCode {string} - pact code to execute
-* @property keyPairs {array or object} - array or single ED25519 keypair and/or clist(list of `cap` in mkCap) 
-* @property nonce {string} - nonce value, default at current time
-* @property envData {object} - JSON message data including keyset information, defaults to empty obj
-* @property meta {object} - meta information, see mkMeta
-* @property networkId {object} network identifier of where the cmd is executed.
-*/
+/**
+ * An execCmd Object to Execute at /send or /local endpoint.
+ * @typedef {Object} execCmd
+ * @property type {string} - type of command - "cont" or "exec", default to "exec"
+ * @property pactCode {string} - pact code to execute in "exec" command - required for "exec"
+ * @property nonce {string} - nonce value to ensure unique hash - default to current time
+ * @property envData {object} - JSON of data in command - not required
+ * @property meta {object} - public meta information, see mkMeta
+ * @property networkId {object} network identifier of where the cmd is executed.
+ */
+```
+```
+/**
+ * A contCmd to Execute at /send endpoint
+ * @typedef {Object} contCmd
+ * @property type {string} - type of command - "cont" or "exec", default to "exec"
+ * @property pactId {string} - pactId the cont command - required for "cont"
+ * @property nonce {string} - nonce value to ensure unique hash - default to current time
+ * @property step {number} - the step of the mutli-step transaction - required for "cont"
+ * @property proof {string} - JSON of SPV proof, required for cross-chain transfer. See `fetchSPV` below
+ * @property rollback {bool} - Indicates if this continuation is a rollback/cancel - required for "cont"
+ * @property envData {object} - JSON of data in command - not required
+ * @property meta {object} - public meta information, see mkMeta
+ * @property networkId {object} network identifier of where the cmd is executed.
+ */
 ```
 ```
 ## Make API request to execute a command or commands in the public server and retrieve request keys of the txs.
 
-Pact.fetch.send([<execCmd:object>], <apiHost:string>) -> {"requestKeys": [...]}
+Pact.fetch.send([<execCmd:object> or <contCmd:object>], <apiHost:string>) -> {"requestKeys": [...]}
 
   ex:
     const cmds = [
                   // create an account with single-sig keyset
                   {
                      keyPairs: KEY_PAIR,
-                     pactCode: "(accounts.create-account 'account-1 (read-keyset 'account-keyset))",
+                     pactCode: "(coin.create-account 'account-1 (read-keyset 'account-keyset))",
                      envData: {
                        "account-keyset": ["368820f80c324bbc7c2b0610688a7da43e39f91d118732671cd9c7500ff43cca"],
                      }
@@ -109,7 +125,7 @@ Pact.fetch.send([<execCmd:object>], <apiHost:string>) -> {"requestKeys": [...]}
                   // create an account with multi-sig keyset
                   {
                     keyPairs: KEY_PAIR,
-                    pactCode: "(accounts.create-account 'account2 (read-keyset 'account-keyset))",
+                    pactCode: "(coin.create-account 'account2 (read-keyset 'account-keyset))",
                     envData: {
                       "account-keyset": {
                         "keys": [
@@ -126,7 +142,7 @@ Pact.fetch.send([<execCmd:object>], <apiHost:string>) -> {"requestKeys": [...]}
 
     // Returns the following as a Promise Value
     { "requestKeys": [ "6ue-lrwXaLcDyxDwJ1nuLzOfFtnQ2TaF0_Or_X0KnbE",
-                     "P7qDsrt3evfEjtlQAW_b1ZPS7LpAZynCO8wx99hc5i0" ]}
+                       "P7qDsrt3evfEjtlQAW_b1ZPS7LpAZynCO8wx99hc5i0" ]}
 ```
 ```
 ## Make API request to execute a single command in the local server and retrieve the result of the tx. (Used to execute commands that read DB)
@@ -135,25 +151,33 @@ Pact.fetch.local(<execCmd:object>, <apiHost:string>) -> {result}
   ex:     
     const cmd = {
         keyPairs: KEY_PAIR,
-        pactCode: `(accounts.read-account 'account1)`
+        pactCode: `(coin.details 'account1)`
       };
 
     Pact.fetch.local(cmd, API_HOST)
 
     // Returns the following as a Promise Value
-    { "status": "success",
-      "data": {
-        "keyset": {
-           "pred": "keys-all",
-           "keys": ["368820f80c324bbc7c2b0610688a7da43e39f91d118732671cd9c7500ff43cca"]
-        },
-        "balance": 0.0
-      }
-    }
+    { gas: 0,
+      result: { status: 'success', data: 'Write succeeded' },
+      reqKey: 'ZWsF84CuKVq4qxjFrgbBr15EHbhKxaeAP6S6qRTWkmY',
+      logs: 'wsATyGqckuIvlm89hhd2j4t6RMkCrcwJe_oeCYr7Th8',
+      metaData:
+       { publicMeta:
+          { creationTime: 1574809666,
+            ttl: 28800,
+            gasLimit: 10000,
+            chainId: '0',
+            gasPrice: 1e-9,
+            sender: 'sender00' },
+         blockTime: 0,
+         prevBlockHash: '',
+         blockHeight: 0 },
+      continuation: null,
+      txId: null }
 ```
 ```
 ## Make API request to retrieve result of a tx or multiple tx's with request keys.
-Pact.fetch.poll({requestKeys: ["..."]}, <apiHost:string>) -> [{requestKey: "...", result: {...}}, ...]
+Pact.fetch.poll({requestKeys: ["..."]}, <apiHost:string>) -> {result}
 
   ex:
     const cmd = { requestKeys: [ "6ue-lrwXaLcDyxDwJ1nuLzOfFtnQ2TaF0_Or_X0KnbE",
@@ -162,48 +186,79 @@ Pact.fetch.poll({requestKeys: ["..."]}, <apiHost:string>) -> [{requestKey: "..."
     Pact.fetch.poll(cmd, API_HOST)
 
     // Returns the following as a Promise Value
-    [{ "reqKey": "6ue-lrwXaLcDyxDwJ1nuLzOfFtnQ2TaF0_Or_X0KnbE",
-       "result": {
-         "status": "success",
-         "data": "Write succeeded"
-       }
-     },
-     { "reqKey": "P7qDsrt3evfEjtlQAW_b1ZPS7LpAZynCO8wx99hc5i0",
-       "result": {
-         "status": "success",
-         "data": "Write succeeded"
-       }
-     }]
+    { 6ue-lrwXaLcDyxDwJ1nuLzOfFtnQ2TaF0_Or_X0KnbE:
+        { gas: 6296,
+          result: { status: 'success', data: 'Write succeeded' },
+          reqKey: '6ue-lrwXaLcDyxDwJ1nuLzOfFtnQ2TaF0_Or_X0KnbE',
+          logs: 'IVz-tGIp3TwibAqlq6UGt4yFiJ-d9sqvcbWVTEs_e68',
+          metaData: null,
+          continuation: null,
+          txId: 702717 },
+      P7qDsrt3evfEjtlQAW_b1ZPS7LpAZynCO8wx99hc5i0:
+        { gas: 6296,
+          result: { status: 'success', data: 'Write succeeded' },
+          reqKey: 'P7qDsrt3evfEjtlQAW_b1ZPS7LpAZynCO8wx99hc5i0',
+          logs: 'sSDqe9W36P43WEUfdyBRB7m-t0qQZjVRtu5jdElfMzgs',
+          metaData: null,
+          continuation: null,
+          txId: 702717 }
+      }
 ```
 ```
 ## Make API request to retrieve result of a tx with a request key.
 Pact.fetch.listen({listen: "..."}, <apiHost:string>) -> {status: "...", data: "..."}
 
   ex:
-    const cmd = { listen: "6ue-lrwXaLcDyxDwJ1nuLzOfFtnQ2TaF0_Or_X0KnbE" }
+    const cmd = { listen: "P7qDsrt3evfEjtlQAW_b1ZPS7LpAZynCO8wx99hc5i0" }
 
     Pact.fetch.listen(cmd, API_HOST)
 
     // Returns the following as a Promise Value
-    { "status": "success",
-      "data": "Write succeeded" }
+    { gas: 6296,
+      result: { status: 'success', data: 'Write succeeded' },
+      reqKey: 'P7qDsrt3evfEjtlQAW_b1ZPS7LpAZynCO8wx99hc5i0',
+      logs: 'IVz-tGIp3TwibAqlq6UGt4yFiJ-d9sqvcbWVTEs_e68',
+      metaData: null,
+      continuation: null,
+      txId: 702717 }
 ```
+```
+/**
+ * A SPV Command Object to Execute at /spv endpoint.
+ * @typedef {Object} spvCmd
+ * @property requestKey {string} pactId of the SPV transaction
+ * @property targetChainId {string} chainId of target chain of SPV transaction
+ */
+```
+```
+## Make API request to retrieve proof of SPV request.
+Pact.fetch.spv([<spvCmd:object>], <apiHost:string>) -> "[proof base64url value]"
 
+   ex:
+     const cmd = { requestKey: "CzZzVpxdQHiL7tmqNnAeCB0qX-nXyqFYAystzNlrBhw",
+                   targetChainId: "1" }
+
+     Pact.fetch.spv(cmd, API_HOST)
+
+     // Returns the following as a Promise Value
+     [proof base64url value]
+
+```
 
 ### Chainweaver Signing API Command
 
 Simple functions to interact with Chainweaver wallet (https://github.com/kadena-io/chainweaver) and its signing API.
 
 ```
- * A signingCmd Object to be sent to the signing API
- * @typedef {Object} signingCmd - cmd to be sent to signing API
+ * A signingCmd Object to send to signing API
+ * @typedef {Object} signingCmd - cmd to send to signing API
  * @property pactCode {string} - Pact code to execute - required
  * @property caps {array or object} - Pact capability to be signed, see mkCap - required
- * @property envData {object} - JSON message data for command - optional
+ * @property envData {object} - JSON of data in command - optional
  * @property sender {string} - sender field in meta, see mkMeta - optional
  * @property chainId {string} - chainId field in meta, see mkMeta - optional
  * @property gasLimit {number} - gasLimit field in meta, see mkMeta - optional
- * @property nonce {string} - nonce value for ensuring unique hash - optional
+ * @property nonce {string} - nonce value for ensuring unique hash, default to current time - optional
  **/
 ```
 
