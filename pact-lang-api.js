@@ -88,28 +88,22 @@ var toTweetNaclSecretKey = function(keyPair) {
  * @return {object} with "hash", "sig" (signature in hex format), and "pubKey" public key value.
  */
 var sign = function(msg, keyPair) {
+  var hshBin = hashBin(msg);
+  var hsh = base64UrlEncode(hshBin);
   if (
-    !keyPair.hasOwnProperty("publicKey") ||
+    !keyPair.hasOwnProperty("publicKey") &&
     !keyPair.hasOwnProperty("secretKey")
   ) {
-    throw new TypeError(
-      "Invalid KeyPair: expected to find keys of name 'secretKey' and 'publicKey': " +
-        JSON.stringify(keyPair)
-    );
-  }
+    return { sig: undefined };
+  } else if (
+    keyPair.hasOwnProperty("publicKey") &&
+    !keyPair.hasOwnProperty("secretKey")){
+      return { sig: "REPLACE THIS WITH SIGNATURE" };
+    }
   var hshBin = hashBin(msg);
   var hsh = base64UrlEncode(hshBin);
   var sigBin = nacl.sign.detached(hshBin, toTweetNaclSecretKey(keyPair));
-  return { hash: hsh, sig: binToHex(sigBin), pubKey: keyPair.publicKey };
-};
-
-var pullSig = function(s) {
-  if (!s.hasOwnProperty("sig")) {
-    throw new TypeError(
-      "Expected to find keys of name 'sig' in " + JSON.stringify(s)
-    );
-  }
-  return { sig: s.sig };
+  return { sig: binToHex(sigBin) };
 };
 
 var pullAndCheckHashs = function(sigs) {
@@ -134,12 +128,12 @@ var pullAndCheckHashs = function(sigs) {
  * @param meta {object} - public meta information, see mkMeta
  * @return valid pact API command for send or local use.
  */
-var prepareExecCmd = function(keyPairs, nonce=new Date().toISOString(), pactCode,
+var prepareExecCmd = function(keyPairs=[], nonce=new Date().toISOString(), pactCode,
                               envData, meta=mkMeta("","",0,0,0,0), networkId=null) {
-
   enforceType(nonce, "string", "nonce");
   enforceType(pactCode, "string", "pactCode");
   var kpArray = asArray(keyPairs);
+  kpArray = kpArray.filter(kp => !!kp.publicKey)
   var signers = kpArray.map(mkSigner);
   var cmdJSON = {
     networkId: networkId,
@@ -154,9 +148,9 @@ var prepareExecCmd = function(keyPairs, nonce=new Date().toISOString(), pactCode
     nonce: JSON.stringify(nonce)
   };
   var cmd = JSON.stringify(cmdJSON);
-  var sigs = kpArray.map(function(kp) {
-    return sign(cmd, kp);
-  });
+  var sigs = kpArray.length===0
+    ? [sign(cmd, kpArray)]
+    : kpArray.map(kp => sign(cmd, kp));
   return mkSingleCmd(sigs, cmd);
 };
 
@@ -173,12 +167,14 @@ var prepareExecCmd = function(keyPairs, nonce=new Date().toISOString(), pactCode
  * @param meta {object} - public meta information, see mkMeta
  * @return valid pact API Cont command for send or local use.
  */
-var prepareContCmd = function(keyPairs, nonce=new Date().toISOString(),
+var prepareContCmd = function(keyPairs=[], nonce=new Date().toISOString(),
                               proof, pactId, rollback, step, envData,
                               meta=mkMeta("","",0,0,0,0), networkId=null) {
 
   enforceType(nonce, "string", "nonce");
   var kpArray = asArray(keyPairs);
+  var kpArray = asArray(keyPairs);
+  kpArray = kpArray.filter(kp => !!kp.publicKey)
   var signers = kpArray.map(mkSigner);
   var cmdJSON = {
     networkId: networkId,
@@ -213,9 +209,12 @@ var mkSingleCmd = function(sigs, cmd) {
   enforceType(cmd, "string", "cmd");
   return {
     hash: pullAndCheckHashs(sigs),
-    sigs: sigs.map(pullSig),
+    sigs: sigs.filter(s => {
+      if (s.sig===undefined) return false;
+      else return true
+    }),
     cmd: cmd
-  };
+  }
 };
 
 /**
