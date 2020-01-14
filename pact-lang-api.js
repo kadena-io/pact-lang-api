@@ -94,16 +94,14 @@ var sign = function(msg, keyPair) {
     !keyPair.hasOwnProperty("publicKey") &&
     !keyPair.hasOwnProperty("secretKey")
   ) {
-    return { sig: undefined };
+    return { hash: hsh, sig: undefined };
   } else if (
     keyPair.hasOwnProperty("publicKey") &&
     !keyPair.hasOwnProperty("secretKey")){
-      return { sig: "REPLACE THIS WITH SIGNATURE" };
+      return { hash: hsh, sig: "REPLACE THIS WITH SIGNATURE" };
     }
-  var hshBin = hashBin(msg);
-  var hsh = base64UrlEncode(hshBin);
   var sigBin = nacl.sign.detached(hshBin, toTweetNaclSecretKey(keyPair));
-  return { sig: binToHex(sigBin) };
+  return { hash: hsh, sig: binToHex(sigBin) };
 };
 
 var pullAndCheckHashs = function(sigs) {
@@ -212,6 +210,8 @@ var mkSingleCmd = function(sigs, cmd) {
     sigs: sigs.filter(s => {
       if (s.sig===undefined) return false;
       else return true
+    }).map(s => {
+      return {sig: s.sig}
     }),
     cmd: cmd
   }
