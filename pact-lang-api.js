@@ -171,7 +171,6 @@ var prepareContCmd = function(keyPairs=[], nonce=new Date().toISOString(),
 
   enforceType(nonce, "string", "nonce");
   var kpArray = asArray(keyPairs);
-  var kpArray = asArray(keyPairs);
   kpArray = kpArray.filter(kp => !!kp.publicKey)
   var signers = kpArray.map(mkSigner);
   var cmdJSON = {
@@ -190,9 +189,9 @@ var prepareContCmd = function(keyPairs=[], nonce=new Date().toISOString(),
     nonce: JSON.stringify(nonce)
   };
   var cmd = JSON.stringify(cmdJSON);
-  var sigs = kpArray.map(function(kp) {
-    return sign(cmd, kp);
-  });
+  var sigs = kpArray.length===0
+    ? [sign(cmd, kpArray)]
+    : kpArray.map(kp => sign(cmd, kp));
   return mkSingleCmd(sigs, cmd);
 };
 
