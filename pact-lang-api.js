@@ -68,6 +68,20 @@ var genKeyPair = function() {
   return { publicKey: pubKey, secretKey: secKey };
 };
 
+/**
+ * Generate a deterministic ED25519 keypair from a given Kadena secretKey
+ * @return {object} with "publicKey" and "secretKey" fields.
+ */
+var restoreKeyPairFromSecretKey = function(seed) {
+  if (!seed)  throw new Error(`seed for KeyPair generation not provided`);
+  if (seed.length !== 64) throw new Error('Seed for KeyPair generation has bad size');
+  var seedForNacl = hexToBin(seed);
+  var kp = nacl.sign.keyPair.fromSeed(seedForNacl);
+  var pubKey = binToHex(kp.publicKey);
+  var secKey = binToHex(kp.secretKey).slice(0, 64);
+  return { publicKey: pubKey, secretKey: secKey };
+};
+
 var toTweetNaclSecretKey = function(keyPair) {
   if (
     !keyPair.hasOwnProperty("publicKey") ||
@@ -608,6 +622,7 @@ module.exports = {
     base64UrlEncode: base64UrlEncode,
     hash: hash,
     genKeyPair: genKeyPair,
+    restoreKeyPairFromSecretKey: restoreKeyPairFromSecretKey,
     sign: sign,
     toTweetNaclSecretKey: toTweetNaclSecretKey
   },
