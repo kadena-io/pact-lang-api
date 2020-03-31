@@ -402,7 +402,20 @@ var mkReq = function(cmd) {
   };
 };
 
-
+/**
+ * Parses raw response from server into JSON or TEXT
+ */
+var parseRes = async function (raw) {
+  const rawRes = await raw;
+  const res = await rawRes;
+  if (res.ok){
+     const resJSON = await rawRes.json();
+     return resJSON;
+   } else {
+     const resTEXT = await rawRes.text();
+     return resTEXT;
+   }
+};
 
  /**
   * An execCmd Object to Execute in send or local.
@@ -430,12 +443,24 @@ var mkReq = function(cmd) {
   */
 
 /**
- * Sends Pact command to a running Pact server and retrieves tx result.
- * @param {[execCmd or contCmd] or execCmd or contCmd} cmd or a list of cmds to execute
- * @param {string} apiHost host running Pact server
- * @return {object} Request key of the tx received from pact server.
- */
-const fetchSend = async function(sendCmd, apiHost){
+* Sends Pact command to a running Pact server and retrieves tx result.
+* @param {[execCmd or contCmd] or execCmd or contCmd} cmd or a list of cmds to execute
+* @param {string} apiHost host running Pact server
+* @return {object} Request key of the tx received from pact server.
+*/
+const fetchSend = async function (sendCmd, apiHost) {
+  let res = fetchSendRaw(sendCmd, apiHost);
+  return parseRes(res);
+}
+
+/**
+* Sends Pact command to a running Pact server and retrieves raw response.
+* @param {[execCmd or contCmd] or execCmd or contCmd} cmd or a list of cmds to execute
+* @param {string} apiHost host running Pact server
+* @return {Promise} Raw Response from Pact Server
+*/
+
+const fetchSendRaw = function(sendCmd, apiHost){
   if (!apiHost)  throw new Error(`Pact.fetch.send(): No apiHost provided`);
   const sendCmds = asArray(sendCmd).map(cmd => {
     if (cmd.type === "cont") {
@@ -447,15 +472,7 @@ const fetchSend = async function(sendCmd, apiHost){
                              cmd.envData, cmd.meta, cmd.networkId )
     }
   })
-  const txRes = await fetch(`${apiHost}/api/v1/send`, mkReq(mkPublicSend(sendCmds)));
-  const res = await txRes;
-  if (res.ok){
-     const tx = await txRes.json();
-     return tx;
-   } else {
-     const tx = await txRes.text();
-     return tx;
-   }
+  return fetch(`${apiHost}/api/v1/send`, mkReq(mkPublicSend(sendCmds)));
 };
 
 /**
@@ -466,24 +483,28 @@ const fetchSend = async function(sendCmd, apiHost){
  */
 
 /**
- * Sends request to /spv to fetch SPV proof.
+ * Sends request to /spv and retrieves SPV proof.
  * @param {spvCmd} spvCmd see spvCmd
  * @param {string} apiHost host running Pact server
  * @return {string} SPV proof received from Pact server.
  */
-const fetchSPV = async function(spvCmd, apiHost){
+
+const fetchSPV = async function (spvCmd, apiHost) {
+  let res = fetchSPVRaw(spvCmd, apiHost);
+  return parseRes(res);
+}
+/**
+ * Sends request to /spv and retrieves raw response.
+ * @param {spvCmd} spvCmd see spvCmd
+ * @param {string} apiHost host running Pact server
+ * @return {Promise} Raw Response from Pact Server
+ */
+
+const fetchSPVRaw = async function(spvCmd, apiHost){
   if (!apiHost)  throw new Error(`Pact.fetch.spv(): No apiHost provided`);
   enforceType(spvCmd.targetChainId, "string", "targetChainId");
   enforceType(spvCmd.requestKey, "string", "requestKey");
-  const txRes = await fetch(`${apiHost}/spv`, mkReq(spvCmd));
-  const res = await txRes;
-  if (res.ok){
-     const tx = await txRes.json();
-     return tx;
-   } else {
-     const tx = await txRes.text();
-     return tx;
-   }
+  return fetch(`${apiHost}/spv`, mkReq(spvCmd));
 };
 
 /**
@@ -492,19 +513,23 @@ const fetchSPV = async function(spvCmd, apiHost){
  * @param {string} apiHost host running Pact server
  * @return {object} tx result received from pact server.
  */
-const fetchLocal = async function(localCmd, apiHost) {
+
+const fetchLocal = async function (localCmd, apiHost) {
+  let res = fetchLocalRaw(localCmd, apiHost);
+  return parseRes(res);
+}
+/**
+ * Sends Local Pact command to a local Pact server and retrieves raw response.
+ * @param {execCmd} localCmd a single cmd to execute locally
+ * @param {string} apiHost host running Pact server
+ * @return {Promise} Raw Response from Pact Server
+ */
+
+const fetchLocalRaw = function(localCmd, apiHost) {
   if (!apiHost)  throw new Error(`Pact.fetch.local(): No apiHost provided`);
   const {keyPairs, nonce, pactCode, envData, meta, networkId} = localCmd
   const cmd = prepareExecCmd(keyPairs, nonce, pactCode, envData, meta, networkId);
-  const txRes = await fetch(`${apiHost}/api/v1/local`, mkReq(cmd));
-  const res = await txRes;
-  if (res.ok){
-     const tx = await txRes.json();
-     return tx;
-   } else {
-     const tx = await txRes.text();
-     return tx;
-   }
+  return fetch(`${apiHost}/api/v1/local`, mkReq(cmd));
 };
 
 /**
@@ -513,17 +538,22 @@ const fetchLocal = async function(localCmd, apiHost) {
  * @param {string} apiHost host running Pact server
  * @return {object} Array of tx request keys and tx results from pact server.
  */
-const fetchPoll = async function(pollCmd, apiHost) {
+
+const fetchPoll = async function (pollCmd, apiHost) {
+  let res = fetchPollRaw(pollCmd, apiHost);
+  return parseRes(res);
+}
+
+/**
+ * Poll result of Pact command on a Pact server and retrieves raw response.
+ * @param {{requestKeys: [<rk:string>]}} pollCmd request Keys of txs to poll.
+ * @param {string} apiHost host running Pact server
+ * @return {Promise} Raw Response from Pact Server
+ */
+
+const fetchPollRaw = function(pollCmd, apiHost) {
   if (!apiHost)  throw new Error(`Pact.fetch.poll(): No apiHost provided`);
-  const txRes = await fetch(`${apiHost}/api/v1/poll`, mkReq(pollCmd));
-  const res = await txRes;
-  if (res.ok){
-     const tx = await txRes.json();
-     return tx;
-   } else {
-     const tx = await txRes.text();
-     return tx;
-   }
+  return fetch(`${apiHost}/api/v1/poll`, mkReq(pollCmd));
 };
 
 /**
@@ -532,18 +562,23 @@ const fetchPoll = async function(pollCmd, apiHost) {
  * @param {string} apiHost host running Pact server
  * @return {object} Object containing tx result from pact server
  */
- const fetchListen = async function(listenCmd, apiHost) {
-   if (!apiHost)  throw new Error(`Pact.fetch.listen(): No apiHost provided`);
-   const txRes = await fetch(`${apiHost}/api/v1/listen`, mkReq(listenCmd));
-   const res = await txRes;
-   if (res.ok){
-      const tx = await txRes.json();
-      return tx;
-    } else {
-      const tx = await txRes.text();
-      return tx;
-    }
- };
+
+const fetchListen = async function (listenCmd, apiHost) {
+  let res = fetchListenRaw(listenCmd, apiHost);
+  return parseRes(res);
+}
+
+/**
+ * Listen for result of Pact command on a Pact server and retrieves raw response.
+ * @param {{listenCmd: <rk:string>}} listenCmd reqest key of tx to listen.
+ * @param {string} apiHost host running Pact server
+ * @return {Promise} Raw Response from Pact Server
+ */
+
+const fetchListenRaw = async function(listenCmd, apiHost) {
+  if (!apiHost)  throw new Error(`Pact.fetch.listen(): No apiHost provided`);
+  return fetch(`${apiHost}/api/v1/listen`, mkReq(listenCmd));
+};
 
 /**
   Signing API functions to interact with Chainweaver wallet (https://github.com/kadena-io/chainweaver) and its signing API.
@@ -589,7 +624,19 @@ var mkCap = function(role, description, name, args=[]) {
  * @param signingCmd - cmd to be sent to signing API
  * @return {object} valid pact ExecCmd for send or local use.
  **/
- const signWallet = async function (signingCmd){
+
+ const signWallet = async function (signingCmd) {
+   let res = signWalletRaw(signingCmd);
+   return parseRes(res).body;
+ }
+
+/**
+ * Sends parameters of Pact Command to the Chainweaver signing API and retrieves raw response.
+ * @param signingCmd - cmd to be sent to signing API
+ * @return {object} valid pact ExecCmd for send or local use.
+ **/
+
+ const signWalletRaw = function (signingCmd){
    if (!signingCmd.pactCode) throw new Error(`Pact.wallet.sign(): No Pact Code provided`);
    if (!signingCmd.caps) throw new Error(`Pact.wallet.sign(): No Caps provided`);
    enforceType(signingCmd.pactCode, "string", "pactCode");
@@ -611,11 +658,8 @@ var mkCap = function(role, description, name, args=[]) {
      nonce: signingCmd.nonce,
      ttl: signingCmd.ttl
    }
-   const res = await fetch('http://127.0.0.1:9467/v1/sign', mkReq(cmd))
-   const resJSON = await res.json();
-   return resJSON.body;
+   return fetch('http://127.0.0.1:9467/v1/sign', mkReq(cmd))
  }
-
 /**
  * Sends a signed Pact ExecCmd to a running Pact server and retrieves tx result.
  * @param {signedCmd} valid pact API command for send or local use.
