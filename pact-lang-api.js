@@ -82,26 +82,62 @@ var toTweetNaclSecretKey = function(keyPair) {
 };
 
 /**
+ * Attach signature to hashed data
+ * @param msg - some data to be passed to blake2b256.
+ * @param keyPair - signing ED25519 keypair
+ * @return {Array} of "hash", "sig" (signature in hex format), and "pubKey" public key values.
+ */
+var attachSig = function(msg, kpArray) {
+  var hshBin = hashBin(msg);
+  var hsh = base64UrlEncode(hshBin);
+  if (kpArray.length === 0 ) {
+   return [{hash: hsh, sig: undefined}];
+  } else {
+    return kpArray.map(kp => {
+      if (
+        (kp.hasOwnProperty("publicKey") && kp.publicKey) &&
+        (kp.hasOwnProperty("secretKey") && kp.secretKey)) {
+        return sign(msg, kp);
+      } else {
+        return {
+          hash: hsh,
+          sig: undefined,
+          publicKey: kp.publicKey
+        };
+      }
+    })
+  }
+};
+
+/**
  * Sign data using key pair.
  * @param msg - some data to be passed to blake2b256.
  * @param keyPair - signing ED25519 keypair
  * @return {object} with "hash", "sig" (signature in hex format), and "pubKey" public key value.
  */
 var sign = function(msg, keyPair) {
-  var hshBin = hashBin(msg);
-  var hsh = base64UrlEncode(hshBin);
   if (
-    !keyPair.hasOwnProperty("publicKey") &&
+    !keyPair.hasOwnProperty("publicKey") ||
     !keyPair.hasOwnProperty("secretKey")
   ) {
-    return { hash: hsh, sig: undefined };
-  } else if (
-    keyPair.hasOwnProperty("publicKey") &&
-    (!keyPair.hasOwnProperty("secretKey") || !keyPair.secretKey)){
-      return { hash: hsh, sig: "REPLACE THIS WITH SIGNATURE" };
-    }
+    throw new TypeError(
+      "Invalid KeyPair: expected to find keys of name 'secretKey' and 'publicKey': " +
+        JSON.stringify(keyPair)
+    );
+  }
+  var hshBin = hashBin(msg);
+  var hsh = base64UrlEncode(hshBin);
   var sigBin = nacl.sign.detached(hshBin, toTweetNaclSecretKey(keyPair));
-  return { hash: hsh, sig: binToHex(sigBin) };
+  return { hash: hsh, sig: binToHex(sigBin), pubKey: keyPair.publicKey };
+};
+
+var pullSig = function(s) {
+  if (!s.hasOwnProperty("sig")) {
+    throw new TypeError(
+      "Expected to find keys of name 'sig' in " + JSON.stringify(s)
+    );
+  }
+  return { sig: s.sig };
 };
 
 var pullAndCheckHashs = function(sigs) {
@@ -128,10 +164,10 @@ var pullAndCheckHashs = function(sigs) {
  */
 var prepareExecCmd = function(keyPairs=[], nonce=new Date().toISOString(), pactCode,
                               envData, meta=mkMeta("","",0,0,0,0), networkId=null) {
+
   enforceType(nonce, "string", "nonce");
   enforceType(pactCode, "string", "pactCode");
   var kpArray = asArray(keyPairs);
-  kpArray = kpArray.filter(kp => !!kp.publicKey)
   var signers = kpArray.map(mkSigner);
   var cmdJSON = {
     networkId: networkId,
@@ -146,9 +182,7 @@ var prepareExecCmd = function(keyPairs=[], nonce=new Date().toISOString(), pactC
     nonce: JSON.stringify(nonce)
   };
   var cmd = JSON.stringify(cmdJSON);
-  var sigs = kpArray.length===0
-    ? [sign(cmd, kpArray)]
-    : kpArray.map(kp => sign(cmd, kp));
+  var sigs = attachSig(cmd, kpArray);
   return mkSingleCmd(sigs, cmd);
 };
 
@@ -171,7 +205,6 @@ var prepareContCmd = function(keyPairs=[], nonce=new Date().toISOString(),
 
   enforceType(nonce, "string", "nonce");
   var kpArray = asArray(keyPairs);
-  kpArray = kpArray.filter(kp => !!kp.publicKey)
   var signers = kpArray.map(mkSigner);
   var cmdJSON = {
     networkId: networkId,
@@ -189,9 +222,7 @@ var prepareContCmd = function(keyPairs=[], nonce=new Date().toISOString(),
     nonce: JSON.stringify(nonce)
   };
   var cmd = JSON.stringify(cmdJSON);
-  var sigs = kpArray.length===0
-    ? [sign(cmd, kpArray)]
-    : kpArray.map(kp => sign(cmd, kp));
+  var sigs = attachSig(cmd, kpArray);
   return mkSingleCmd(sigs, cmd);
 };
 
@@ -206,14 +237,9 @@ var mkSingleCmd = function(sigs, cmd) {
   enforceType(cmd, "string", "cmd");
   return {
     hash: pullAndCheckHashs(sigs),
-    sigs: sigs.filter(s => {
-      if (s.sig===undefined) return false;
-      else return true
-    }).map(s => {
-      return {sig: s.sig}
-    }),
+    sigs: sigs.filter(sig => sig.sig).map(pullSig),
     cmd: cmd
-  }
+  };
 };
 
 /**
