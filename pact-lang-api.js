@@ -515,9 +515,15 @@ const fetchLocal = async function(localCmd, apiHost) {
  */
 const fetchPoll = async function(pollCmd, apiHost) {
   if (!apiHost)  throw new Error(`Pact.fetch.poll(): No apiHost provided`);
-  const res = await fetch(`${apiHost}/api/v1/poll`, mkReq(pollCmd));
-  const resJSON = await res.json();
-  return resJSON;
+  const txRes = await fetch(`${apiHost}/api/v1/poll`, mkReq(pollCmd));
+  const res = await txRes;
+  if (res.ok){
+     const tx = await txRes.json();
+     return tx;
+   } else {
+     const tx = await txRes.text();
+     return tx;
+   }
 };
 
 /**
@@ -528,7 +534,7 @@ const fetchPoll = async function(pollCmd, apiHost) {
  */
  const fetchListen = async function(listenCmd, apiHost) {
    if (!apiHost)  throw new Error(`Pact.fetch.listen(): No apiHost provided`);
-   const res = await fetch(`${apiHost}/api/v1/listen`, mkReq(listenCmd));
+   const txRes = await fetch(`${apiHost}/api/v1/listen`, mkReq(listenCmd));
    const res = await txRes;
    if (res.ok){
       const tx = await txRes.json();
