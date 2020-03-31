@@ -42,7 +42,7 @@ test("Make a local request and retrieve result", async function(t) {
     }
   }
 
-  t.deepEqual(actual, expected);
+  t.deepEqual(actual.result, expected);
 })
 
 // test Pact.fetch.poll()
@@ -50,17 +50,13 @@ test("Make a poll request with a request key and retrieve result", async functio
   var pollRq = { requestKeys: ["uolsidh4DWN-D44FoElnosL8e5-cGCGn_0l2Nct5mq8"] }
 
   var actual = await Pact.fetch.poll(pollRq, apiHost);
-  var expected = [{
-    reqKey: 'uolsidh4DWN-D44FoElnosL8e5-cGCGn_0l2Nct5mq8',
-    result: {
+  var expected = {
       status: 'success',
       data: {
         time: '2017-10-31T12:00:00Z'
       }
-    }
-  }]
 
-  t.deepEqual(actual, expected);
+  t.deepEqual(actual["uolsidh4DWN-D44FoElnosL8e5-cGCGn_0l2Nct5mq8"].result, expected);
 })
 
 // test Pact.fetch.listen()
@@ -75,5 +71,5 @@ test("Make a listen request with a request key and retrieve result", async funct
     }
   }
 
-  t.deepEqual(actual, expected);
+  t.deepEqual(actual.result, expected);
 })

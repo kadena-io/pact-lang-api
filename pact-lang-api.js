@@ -256,10 +256,14 @@ var mkPublicSend = function(cmds) {
  * @return {object} an object with pubKey, addr and scheme fields.
  */
 var mkSigner = function(kp) {
-  return {
-    clist: kp.clist ? asArray(kp.clist) : [],
-    pubKey: kp.publicKey
-  };
+  if (kp.clist) {
+    return {
+      clist: asArray(kp.clist),
+      pubKey: kp.publicKey
+    }
+  } else {
+    return {pubKey: kp.publicKey}
+  }
 };
 
 var asArray = function(singleOrArray) {
