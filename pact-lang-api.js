@@ -500,7 +500,7 @@ const fetchSPV = async function (spvCmd, apiHost) {
  * @return {Promise} Raw Response from Pact Server
  */
 
-const fetchSPVRaw = async function(spvCmd, apiHost){
+const fetchSPVRaw = function(spvCmd, apiHost){
   if (!apiHost)  throw new Error(`Pact.fetch.spv(): No apiHost provided`);
   enforceType(spvCmd.targetChainId, "string", "targetChainId");
   enforceType(spvCmd.requestKey, "string", "requestKey");
@@ -575,7 +575,7 @@ const fetchListen = async function (listenCmd, apiHost) {
  * @return {Promise} Raw Response from Pact Server
  */
 
-const fetchListenRaw = async function(listenCmd, apiHost) {
+const fetchListenRaw = function(listenCmd, apiHost) {
   if (!apiHost)  throw new Error(`Pact.fetch.listen(): No apiHost provided`);
   return fetch(`${apiHost}/api/v1/listen`, mkReq(listenCmd));
 };
