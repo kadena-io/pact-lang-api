@@ -669,7 +669,7 @@ var mkCap = function(role, description, name, args=[]) {
 
  const signWallet = async function (signingCmd) {
    let res = signWalletRaw(signingCmd);
-   let resParsed = await parseRes(res)
+   let resParsed = await parseRes(res);
    return resParsed.body;
  }
 
