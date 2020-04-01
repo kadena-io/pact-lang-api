@@ -9,7 +9,7 @@ For example usage, see [github.com/kadena-io/pact-todomvc](github.com/kadena-io/
 
 `pact-lang-api.js` should work as expected as a regular node dependency.
 
-`<script src="pact-lang-api-global.min.js"></script>` will import the library and inject it as a top-level definition called `Pact`
+`<script src="https://cdn.jsdelivr.net/npm/pact-lang-api@4.1.1/pact-lang-api-global.min.js"></script>` will import the library and inject it as a top-level definition called `Pact`
 
 ## Functions
 

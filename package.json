@@ -1,6 +1,6 @@
 {
   "name": "pact-lang-api",
-  "version": "4.0.0",
+  "version": "4.1.1",
   "description": "hashing and signing functions needed to interact with Pact 3.0 and greater",
   "main": "pact-lang-api.js",
   "scripts": {
@@ -15,12 +15,12 @@
   "author": "Will Martino",
   "license": "BSD3",
   "dependencies": {
-    "base64-url": "^2.2.1",
+    "base64-url": "^2.3.3",
     "blakejs": "^1.0.1",
     "blue-tape": "^1.0.0",
-    "browserify": "^16.2.3",
+    "browserify": "^16.5.1",
     "node-fetch": "^2.6.0",
-    "tape": "^4.11.0",
+    "tape": "^4.13.2",
     "tweetnacl": "^0.14.5"
   }
 }

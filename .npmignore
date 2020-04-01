@@ -1,5 +1,5 @@
 .DS_Store
+.git/
 node_modules/
 log/
 package-lock.json
-*.min.js
