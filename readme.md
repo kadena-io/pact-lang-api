@@ -37,6 +37,11 @@ Pact.crypto.sign(<string>, keyPair) -> {"hash": <string>, "sig":<string>, "pubKe
 Pact.crypto.toTweetNaclSecretKey(keyPair) -> <Uint8Array>
 ```
 
+Restoring a key pair from secret key.
+```
+Pact.crypto.restoreKeyPairFromSecretKey(secretKey) -> {"publicKey": <string>, "secretKey": <string>}
+```
+
 ### Language Expression Construction
 
 A helper function for constructing native Pact commands.

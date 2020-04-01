@@ -92,3 +92,16 @@ test("Takes in kp Object and returns secretkey in Uint8Array", function(t){
   t.deepEqual(actual, expected)
   t.end()
 })
+
+// test Pact.crypto.restoreKeyPairFromSecretKey()
+test('Takes in a secretKey - hex of length 64 representing 32 byte Uint8Array binary object and outputs generated keypair object of secretKey and publicKey', function (t) {
+  var secretKey = "53d1e1639bd6c607d33f3efcbaafc6d0d4fb022cd57a3a9b8534ddcd8c471902"
+  var actual = Pact.crypto.restoreKeyPairFromSecretKey(secretKey)
+  var expected = {
+    publicKey: '85bef77ea3570387cac57da34938f246c7460dc533a67823f065823e327b2afd',
+    secretKey: '53d1e1639bd6c607d33f3efcbaafc6d0d4fb022cd57a3a9b8534ddcd8c471902'
+  }
+
+  t.deepEqual(expected, actual);
+  t.end();
+});
