@@ -36,11 +36,16 @@ test("Make a local request and retrieve result", async function(t) {
 
   var actual = await Pact.fetch.local(cmdObj, apiHost);
   var expected = {
-    status: 'success',
-    data: {
-      time: '2017-10-31T12:00:00Z'
+    gas: 0,
+    result: {
+      status: 'success',
+      data: { time: '2017-10-31T12:00:00Z' } },
+      reqKey: 'uolsidh4DWN-D44FoElnosL8e5-cGCGn_0l2Nct5mq8',
+      logs: 'nTqCyxahk8iqi_YxIELc5ZA5I53JhurqU5M4muTJE2A',
+      metaData: null,
+      continuation: null,
+      txId: null
     }
-  }
 
   t.deepEqual(actual, expected);
 })
@@ -50,16 +55,20 @@ test("Make a poll request with a request key and retrieve result", async functio
   var pollRq = { requestKeys: ["uolsidh4DWN-D44FoElnosL8e5-cGCGn_0l2Nct5mq8"] }
 
   var actual = await Pact.fetch.poll(pollRq, apiHost);
-  var expected = [{
-    reqKey: 'uolsidh4DWN-D44FoElnosL8e5-cGCGn_0l2Nct5mq8',
-    result: {
-      status: 'success',
-      data: {
-        time: '2017-10-31T12:00:00Z'
+  var expected =  {
+    'uolsidh4DWN-D44FoElnosL8e5-cGCGn_0l2Nct5mq8': {
+        gas: 0,
+        result: {
+          status: 'success',
+          data: { time: '2017-10-31T12:00:00Z' }
+        },
+        reqKey: 'uolsidh4DWN-D44FoElnosL8e5-cGCGn_0l2Nct5mq8',
+        logs: 'nTqCyxahk8iqi_YxIELc5ZA5I53JhurqU5M4muTJE2A',
+        metaData: null,
+        continuation: null,
+        txId: 0
       }
     }
-  }]
-
   t.deepEqual(actual, expected);
 })
 
@@ -69,10 +78,14 @@ test("Make a listen request with a request key and retrieve result", async funct
 
   var actual = await Pact.fetch.listen(listenRq, apiHost);
   var expected = {
-    status: 'success',
-    data: {
-      time: '2017-10-31T12:00:00Z'
-    }
+    gas: 0,
+    result: { status: 'success',
+    data: { time: '2017-10-31T12:00:00Z' } },
+    reqKey: 'uolsidh4DWN-D44FoElnosL8e5-cGCGn_0l2Nct5mq8',
+    logs: 'nTqCyxahk8iqi_YxIELc5ZA5I53JhurqU5M4muTJE2A',
+    metaData: null,
+    continuation: null,
+    txId: 0
   }
 
   t.deepEqual(actual, expected);
