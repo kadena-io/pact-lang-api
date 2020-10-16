@@ -46,7 +46,7 @@ test('Takes in hashed Uint8Array binary object and outputs Base 64 URL encoded s
                                   16,  95, 135,  33, 132, 226, 228, 154
                                ])
 
-  var actual = Pact.crypto.base64UrlEncode(hshbin)
+  var actual = Pact.crypto.base64UrlEncodeArr(hshbin)
   var expected = "zaqnRQ0RYzxTccjtYoBvQsDo5K9mxr4TEF-HIYTi5Jo"
 
   t.equals(expected, actual);
