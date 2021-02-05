@@ -659,6 +659,7 @@ var mkCap = function(role, description, name, args=[]) {
  * @property chainId {string} - chainId field in meta, see mkMeta - optional
  * @property gasLimit {number} - gasLimit field in meta, see mkMeta - optional
  * @property nonce {string} - nonce value for ensuring unique hash - optional
+ * @property signingPubKey {string} - Public Key that will sign the tx - optional
  **/
 
 /**
@@ -690,6 +691,7 @@ var mkCap = function(role, description, name, args=[]) {
    if (signingCmd.gasLimit) enforceType(signingCmd.gasLimit, "number", "gasLimit");
    if (signingCmd.nonce) enforceType(signingCmd.nonce, "string", "nonce");
    if (signingCmd.ttl) enforceType(signingCmd.ttl, "number", "ttl");
+   if (signingCmd.signingPubKey) enforceType(signingCmd.signingPubKey, "string", "signingPubKey");
 
    const cmd = {
      code: signingCmd.pactCode,
@@ -699,7 +701,8 @@ var mkCap = function(role, description, name, args=[]) {
      chainId: signingCmd.chainId,
      gasLimit: signingCmd.gasLimit,
      nonce: signingCmd.nonce,
-     ttl: signingCmd.ttl
+     ttl: signingCmd.ttl,
+     signingPubKey: signingCmd.signingPubKey
    }
    return fetch('http://127.0.0.1:9467/v1/sign', mkReq(cmd))
  }
