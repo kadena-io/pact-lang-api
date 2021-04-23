@@ -38,7 +38,7 @@ test('Takes in hex string and outputs Uint8Array binary object', function (t) {
   t.end();
 });
 
-// test Pact.crypto.base64UrlEncode()
+// test Pact.crypto.base64UrlEncodeArr()
 test('Takes in hashed Uint8Array binary object and outputs Base 64 URL encoded string', function (t) {
   var hshbin = new Uint8Array([  205, 170, 167,  69,  13,  17,  99,  60,
                                   83, 113, 200, 237,  98, 128, 111,  66,
@@ -46,7 +46,7 @@ test('Takes in hashed Uint8Array binary object and outputs Base 64 URL encoded s
                                   16,  95, 135,  33, 132, 226, 228, 154
                                ])
 
-  var actual = Pact.crypto.base64UrlEncode(hshbin)
+  var actual = Pact.crypto.base64UrlEncodeArr(hshbin)
   var expected = "zaqnRQ0RYzxTccjtYoBvQsDo5K9mxr4TEF-HIYTi5Jo"
 
   t.equals(expected, actual);

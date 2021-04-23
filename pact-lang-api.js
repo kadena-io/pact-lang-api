@@ -6,7 +6,6 @@
 
 const blake = require("blakejs");
 const nacl = require("tweetnacl");
-const base64url = require("base64-url");
 const fetch = require("node-fetch");
 
 /**
@@ -36,6 +35,88 @@ var hexToBin = function(h) {
   return new Uint8Array(Buffer.from(h, "hex"));
 };
 
+b64url = (function() {
+
+  'use strict';
+
+  var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_=';
+
+  function InvalidCharacterError(message) {
+    this.message = message;
+  }
+  InvalidCharacterError.prototype = new Error ();
+  InvalidCharacterError.prototype.name = 'InvalidCharacterError';
+
+  // encoder
+  // [https://gist.github.com/999166] by [https://github.com/nignag]
+  function base64UrlEncode(input) {
+    var str = String (input);
+    for (
+      // initialize result and counter
+      var block, charCode, idx = 0, map = chars, output = '';
+      // if the next str index does not exist:
+      //   change the mapping table to "="
+      //   check if d has no fractional digits
+      // str.charAt (idx | 0) || (map = '=', idx % 1);
+      str.charAt (idx | 0);
+      // "8 - idx % 1 * 8" generates the sequence 2, 4, 6, 8
+      output += map.charAt (63 & block >> 8 - idx % 1 * 8)
+    ) {
+      charCode = str.charCodeAt (idx += 3 / 4);
+      if (charCode > 0xFF) {
+        throw new InvalidCharacterError ("'btoa' failed: The string to be encoded contains characters outside of the Latin1 range.");
+      }
+      block = block << 8 | charCode;
+    }
+    return output;
+  }
+
+  // decoder
+  // [https://gist.github.com/1020396] by [https://github.com/atk]
+  function base64UrlDecode(input) {
+    var str = (String (input)).replace (/[=]+$/, ''); // #31: ExtendScript bad parse of /=
+    if (str.length % 4 === 1) {
+      throw new InvalidCharacterError ("'atob' failed: The string to be decoded is not correctly encoded.");
+    }
+    for (
+      // initialize result and counters
+      var bc = 0, bs, buffer, idx = 0, output = '';
+      // get next character
+      buffer = str.charAt (idx++); // eslint-disable-line no-cond-assign
+      // character found in table? initialize bit storage and add its ascii value;
+      ~buffer && (bs = bc % 4 ? bs * 64 + buffer : buffer,
+        // and if not first of each 4 characters,
+        // convert the first 8 bits to one ascii character
+        bc++ % 4) ? output += String.fromCharCode (255 & bs >> (-2 * bc & 6)) : 0
+    ) {
+      // try to find character in table (0-63, not found => -1)
+      buffer = chars.indexOf (buffer);
+    }
+    return output;
+  }
+
+  return {encode: base64UrlEncode, decode: base64UrlDecode};
+
+})();
+
+function strToUint8Array(s) {
+    var i, b = new Uint8Array(s.length);
+    for (i = 0; i < s.length; i++) b[i] = s.charCodeAt(i);
+    return b;
+}
+
+function uint8ArrayToStr(a) {
+    return String.fromCharCode.apply(null, new Uint16Array(a));
+}
+
+function b64urlDecodeArr(input) {
+    return strToUint8Array(b64url.decode(input));
+}
+
+function b64urlEncodeArr(input) {
+    return b64url.encode(uint8ArrayToStr(input));
+}
+
 /**
  * Perform blake2b256 hashing.
  */
@@ -47,14 +128,7 @@ var hashBin = function(s) {
  * Perform blake2b256 hashing, encoded as unescaped base64url.
  */
 var hash = function(s) {
-  return base64UrlEncode(hashBin(s));
-};
-
-/**
- * Hash string as unescaped base64url.
- */
-var base64UrlEncode = function(s) {
-  return base64url.escape(base64url.encode(s));
+  return b64urlEncodeArr(hashBin(s));
 };
 
 /**
@@ -103,7 +177,7 @@ var toTweetNaclSecretKey = function(keyPair) {
  */
 var attachSig = function(msg, kpArray) {
   var hshBin = hashBin(msg);
-  var hsh = base64UrlEncode(hshBin);
+  var hsh = b64urlEncodeArr(hshBin);
   if (kpArray.length === 0 ) {
    return [{hash: hsh, sig: undefined}];
   } else {
@@ -140,7 +214,28 @@ var sign = function(msg, keyPair) {
     );
   }
   var hshBin = hashBin(msg);
-  var hsh = base64UrlEncode(hshBin);
+  var hsh = b64urlEncodeArr(hshBin);
+  var sigBin = nacl.sign.detached(hshBin, toTweetNaclSecretKey(keyPair));
+  return { hash: hsh, sig: binToHex(sigBin), pubKey: keyPair.publicKey };
+};
+
+/**
+ * Sign a hash using key pair.
+ * @param hash - a hash to sign (as a base64url-encoded string)
+ * @param keyPair - signing ED25519 keypair
+ * @return {object} with "hash", "sig" (signature in hex format), and "pubKey" public key value.
+ */
+var signHash = function(hsh, keyPair) {
+  if (
+    !keyPair.hasOwnProperty("publicKey") ||
+    !keyPair.hasOwnProperty("secretKey")
+  ) {
+    throw new TypeError(
+      "Invalid KeyPair: expected to find keys of name 'secretKey' and 'publicKey': " +
+        JSON.stringify(keyPair)
+    );
+  }
+  var hshBin = b64url.decode(hsh);
   var sigBin = nacl.sign.detached(hshBin, toTweetNaclSecretKey(keyPair));
   return { hash: hsh, sig: binToHex(sigBin), pubKey: keyPair.publicKey };
 };
@@ -722,11 +817,19 @@ module.exports = {
   crypto: {
     binToHex: binToHex,
     hexToBin: hexToBin,
-    base64UrlEncode: base64UrlEncode,
+    base64UrlEncode: b64url.encode,
+    base64UrlDecode: b64url.decode,
+    base64UrlEncodeArr: b64urlEncodeArr,
+    base64UrlDecodeArr: b64urlDecodeArr,
+    strToUint8Array: strToUint8Array,
+    uint8ArrayToStr: uint8ArrayToStr,
     hash: hash,
+    hashBin: hashBin,
     genKeyPair: genKeyPair,
     restoreKeyPairFromSecretKey: restoreKeyPairFromSecretKey,
     sign: sign,
+    signHash: signHash,
+    verifySig: nacl.sign.detached.verify,
     toTweetNaclSecretKey: toTweetNaclSecretKey
   },
   api: {
