@@ -94,7 +94,7 @@ Simple fetch functions to make API request to a running Pact Server and retrieve
  * @property nonce {string} - nonce value to ensure unique hash - default to current time
  * @property envData {object} - JSON of data in command - not required
  * @property meta {object} - public meta information, see mkMeta
- * @property networkId {object} network identifier of where the cmd is executed.
+ * @property networkId {string} network identifier of where the cmd is executed.
  */
 ```
 ```
@@ -109,7 +109,7 @@ Simple fetch functions to make API request to a running Pact Server and retrieve
  * @property rollback {bool} - Indicates if this continuation is a rollback/cancel - required for "cont"
  * @property envData {object} - JSON of data in command - not required
  * @property meta {object} - public meta information, see mkMeta
- * @property networkId {object} network identifier of where the cmd is executed.
+ * @property networkId {string} network identifier of where the cmd is executed.
  */
 ```
 ```
@@ -255,16 +255,19 @@ Pact.fetch.spv([<spvCmd:object>], <apiHost:string>) -> "[proof base64url value]"
 Simple functions to interact with Chainweaver wallet (https://github.com/kadena-io/chainweaver) and its signing API.
 
 ```
- * A signingCmd Object to send to signing API
- * @typedef {Object} signingCmd - cmd to send to signing API
- * @property pactCode {string} - Pact code to execute - required
- * @property caps {array or object} - Pact capability to be signed, see mkCap - required
- * @property envData {object} - JSON of data in command - optional
- * @property sender {string} - sender field in meta, see mkMeta - optional
- * @property chainId {string} - chainId field in meta, see mkMeta - optional
- * @property gasLimit {number} - gasLimit field in meta, see mkMeta - optional
- * @property nonce {string} - nonce value for ensuring unique hash, default to current time - optional
- **/
+* A signingCmd Object to send to signing API
+* @typedef {Object} signingCmd - cmd to send to signing API
+* @property pactCode {string} - Pact code to execute - required
+* @property caps {array or object} - Pact capability to be signed, see mkCap - required
+* @property envData {object} - JSON of data in command - optional
+* @property sender {string} - sender field in meta, see mkMeta - optional
+* @property chainId {string} - chainId field in meta, see mkMeta - optional
+* @property gasLimit {number} - gasLimit field in meta, see mkMeta - optional
+* @property gasPrice {string} - gasPrice field in meta, see mkMeta - optional
+* @property signingPubKey {string} - public key of the signer - optional
+* @property networkId {string} - network identifier of where the cmd is executed - optional
+* @property nonce {string} - nonce value for ensuring unique hash - optional
+**/
 ```
 
 ```
