@@ -562,7 +562,7 @@ var parseRes = async function (raw) {
   * @property nonce {string} - nonce value to ensure unique hash - default to current time
   * @property envData {object} - JSON of data in command - not required
   * @property meta {object} - public meta information, see mkMeta
-  * @property networkId {object} network identifier of where the cmd is executed.
+  * @property networkId {string} network identifier of where the cmd is executed.
   */
 
  /**
@@ -576,7 +576,7 @@ var parseRes = async function (raw) {
   * @property rollback {bool} - Indicates if this continuation is a rollback/cancel - required for "cont"
   * @property envData {object} - JSON of data in command - not required
   * @property meta {object} - public meta information, see mkMeta
-  * @property networkId {object} network identifier of where the cmd is executed.
+  * @property networkId {string} network identifier of where the cmd is executed.
   */
 
 /**
@@ -753,7 +753,11 @@ var mkCap = function(role, description, name, args=[]) {
  * @property sender {string} - sender field in meta, see mkMeta - optional
  * @property chainId {string} - chainId field in meta, see mkMeta - optional
  * @property gasLimit {number} - gasLimit field in meta, see mkMeta - optional
+ * @property gasPrice {string} - gasPrice field in meta, see mkMeta - optional
+ * @property signingPubKey {string} - public key of the signer - optional
+ * @property networkId {string} - network identifier of where the cmd is executed - optional
  * @property nonce {string} - nonce value for ensuring unique hash - optional
+ * @property signingPubKey {string} - Public Key that will sign the tx - optional
  **/
 
 /**
@@ -782,9 +786,12 @@ var mkCap = function(role, description, name, args=[]) {
    if (signingCmd.envData) enforceType(signingCmd.envData, "object", "envData");
    if (signingCmd.sender) enforceType(signingCmd.sender, "string", "sender");
    if (signingCmd.chainId) enforceType(signingCmd.chainId, "string", "chainId");
+   if (signingCmd.gasPrice) enforceType(signingCmd.gasPrice, "number", "gasPrice");
    if (signingCmd.gasLimit) enforceType(signingCmd.gasLimit, "number", "gasLimit");
    if (signingCmd.nonce) enforceType(signingCmd.nonce, "string", "nonce");
    if (signingCmd.ttl) enforceType(signingCmd.ttl, "number", "ttl");
+   if (signingCmd.networkId) enforceType(signingCmd.networkId, "string", "networkId");
+   if (signingCmd.signingPubKey) enforceType(signingCmd.signingPubKey, "string", "signingPubKey");
 
    const cmd = {
      code: signingCmd.pactCode,
@@ -793,8 +800,11 @@ var mkCap = function(role, description, name, args=[]) {
      sender: signingCmd.sender,
      chainId: signingCmd.chainId,
      gasLimit: signingCmd.gasLimit,
+     gasPrice: signingCmd.gasPrice,
      nonce: signingCmd.nonce,
-     ttl: signingCmd.ttl
+     ttl: signingCmd.ttl,
+     signingPubKey: signingCmd.signingPubKey,
+     networkId: signingCmd.networkId
    }
    return fetch('http://127.0.0.1:9467/v1/sign', mkReq(cmd))
  }
