@@ -235,7 +235,7 @@ var signHash = function(hsh, keyPair) {
         JSON.stringify(keyPair)
     );
   }
-  var hshBin = b64url.decode(hsh);
+  var hshBin = b64urlDecodeArr(hsh);
   var sigBin = nacl.sign.detached(hshBin, toTweetNaclSecretKey(keyPair));
   return { hash: hsh, sig: binToHex(sigBin), pubKey: keyPair.publicKey };
 };
