@@ -271,7 +271,7 @@ var pullAndCheckHashs = function(sigs) {
  * @param meta {object} - public meta information, see mkMeta
  * @return valid pact API command for send or local use.
  */
-var prepareExecCmd = function(keyPairs=[], nonce=new Date().toISOString(), pactCode,
+var prepareExecUnsigned = function(keyPairs=[], nonce=new Date().toISOString(), pactCode,
                               envData, meta=mkMeta("","",0,0,0,0), networkId=null) {
 
   enforceType(nonce, "string", "nonce");
@@ -290,7 +290,12 @@ var prepareExecCmd = function(keyPairs=[], nonce=new Date().toISOString(), pactC
     meta: meta,
     nonce: JSON.stringify(nonce)
   };
-  var cmd = JSON.stringify(cmdJSON);
+  return JSON.stringify(cmdJSON);
+};
+
+var prepareExecCmd = function(keyPairs=[], nonce=new Date().toISOString(), pactCode,
+                              envData, meta=mkMeta("","",0,0,0,0), networkId=null) {
+  var cmd = prepareExecUnsigned(keyPairs, nonce, pactCode, envData, meta, networkId);
   var sigs = attachSig(cmd, kpArray);
   return mkSingleCmd(sigs, cmd);
 };
