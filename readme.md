@@ -311,7 +311,7 @@ Pact.api.mkPublicSend([cmd]) -> {"cmds":[cmd]} \\ send as POST to /api/poll
 
 Events from transaction outputs are flattened into a single array or stream. Each item contains a height property that indicates the block height at which it occurred.
 
-Example of an event object:
+##### Example of an event object:
 
 ```
 {
@@ -326,7 +326,7 @@ Example of an event object:
   height: 1511601
 }
 ```
-
+##### Event Function Parameters
 ```
 /**
  * @param {number|string} chainId - a chain id that is valid for the network
@@ -354,7 +354,7 @@ Pact.event.height(chainId, blockHeight, network, host)
 Pact.event.blockHash(chainId, blockHash, network, host)
 ```
 
-##### Recent Events
+#### Recent Events
 
 These functions return items from recent blocks in the block history starting
 at a given depth.
