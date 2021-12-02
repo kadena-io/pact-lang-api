@@ -1001,7 +1001,7 @@ const reversePages = async (query, n) => {
  * @param {boolean} [retryOptions.retry404=false] - whether to retry on 404 results
  * @return {Object} cut hashes object
  *
- * @alias module:chainweb.cut.current
+ * @alias module:Pact.cut.current
  */
 const currentCut = async (network, host, retryOptions) => {
     const response = await retryFetch(
@@ -1013,7 +1013,7 @@ const currentCut = async (network, host, retryOptions) => {
 
 
 /**
- * A signle block header page in decending order
+ * A single block header page in decending order
  *
  * @param {number|string} chainId - a chain id that is valid for the network
  * @param {string[]} [upper]- only antecessors of these block hashes are returned. Note that if this is null, the result is empty.
@@ -1029,7 +1029,7 @@ const currentCut = async (network, host, retryOptions) => {
  * @param {boolean} [retryOptions.retry404=false] - whether to retry on 404 results
  * @return {Object} Page of block headers in requested format. Headers are listed in decending order by height. The page size of a page is determined by the server.
  *
- * @alias module:chainweb.internal.branch
+ * @alias module:Pact.internal.branch
  */
 const branchPage = async (chainId, upper, lower, minHeight, maxHeight, n, next, format, network, host, retryOptions) => {
 
@@ -1093,7 +1093,7 @@ const branchPage = async (chainId, upper, lower, minHeight, maxHeight, n, next, 
  * @param {boolean} [retryOptions.retry404=false] - whether to retry on 404 results
  * @return [Object] Array of block headers in the requested format.
  *
- * @alias module:chainweb.internal.branch
+ * @alias module:Pact.internal.branch
  */
 const branch = async (chainId, upper, lower, minHeight, maxHeight, n, format, network, host, retryOptions) => {
     return await reversePages((next, limit) => {
@@ -1113,7 +1113,7 @@ const branch = async (chainId, upper, lower, minHeight, maxHeight, n, format, ne
  * @param {string} [host="https://api.chainweb.com"] - chainweb api host
  * @return [Object] Array of block headers in the requested format.
  *
- * @alias module:chainweb.internal.currentBranch
+ * @alias module:Pact.internal.currentBranch
  */
 const currentBranch = async (chainId, start, end, n, format, network, host) => {
     const cut = await currentCut(network, host);
@@ -1142,7 +1142,7 @@ const currentBranch = async (chainId, start, end, n, format, network, host) => {
  * @param {boolean} [retryOptions.retry404=false] - whether to retry on 404 results
  * @return {Object[]} Array of block header objects. There is no guarantee about how many paylaods are returned and what payloads aer included in the result.
  *
- * @alias module:chainweb.internal.payloads
+ * @alias module:Pact.internal.payloads
  */
 const payloads = async (chainId, hashes, format, network, host, retryOptions) => {
 
@@ -1242,7 +1242,7 @@ const chainUpdates = (depth, chainIds, callback, network, host) => {
  * @param {string} [host="https://api.chainweb.com"] - chainweb api host
  * @return {Promise} Array of block headers in ascending order.
  *
- * @alias module:chainweb.header.range
+ * @alias module:Pact.header.range
  */
 const headers = async (chainId, start, end, network, host) => {
     return await currentBranch(chainId, start, end, null, 'json', network, host);
@@ -1258,7 +1258,7 @@ const headers = async (chainId, start, end, network, host) => {
  * @param {string} [host="https://api.chainweb.com"] - chainweb api host
  * @return {Promise} Array of headers in ascending order.
  *
- * @alias module:chainweb.header.recent
+ * @alias module:Pact.header.recent
  */
 const recentHeaders = async (chainId, depth = 0, n = 1, network, host) => {
     const cut = await currentCut(network, host);
@@ -1266,6 +1266,22 @@ const recentHeaders = async (chainId, depth = 0, n = 1, network, host) => {
     const end = cut.hashes['0'].height - depth;
     const upper = cut.hashes[`${chainId}`].hash;
     return await branch(chainId, [upper], [], start, end, n, 'json', network, host);
+}
+
+/**
+ * Query block header by its block hash
+ *
+ * @param {number|string} chainId - a chain id that is valid for the network
+ * @param {string} hash - block hash
+ * @param {string} [network="mainnet01"] - chainweb network
+ * @param {string} [host="https://api.chainweb.com"] - chainweb api host
+ * @return {Promise} Block header with the requested hash
+ *
+ * @alias module:chainweb.header.hash
+ */
+const headerByBlockHash = async (chainId, hash, network, host) => {
+    const x = await branch(chainId, [hash], [], null, null, 1);
+    return x[0];
 }
 
 /* ************************************************************************** */
@@ -1334,7 +1350,7 @@ const headers2blocks = async (hdrs, network, host, retryOptions) => {
  * @param {string} [host="https://api.chainweb.com"] - chainweb api host
  * @return {Promise} Array of blocks
  *
- * @alias module:chainweb.block.range
+ * @alias module:Pact.block.range
  */
 const blocks = async (chainId, start, end, network, host) => {
     let hdrs = await headers(chainId, start, end, network, host);
@@ -1351,7 +1367,7 @@ const blocks = async (chainId, start, end, network, host) => {
  * @param {string} [host="https://api.chainweb.com"] - chainweb api host
  * @return {Promise} Array of blocks
  *
- * @alias module:chainweb.block.recent
+ * @alias module:Pact.block.recent
  */
 const recentBlocks = async (chainId, depth = 0, n = 1, network, host) => {
     let hdrs = await recentHeaders(chainId, depth, n, network, host);
@@ -1360,6 +1376,23 @@ const recentBlocks = async (chainId, depth = 0, n = 1, network, host) => {
         ro = { retry404: true, minTimeout: 1000 };
     }
     return headers2blocks(hdrs, network, host, ro);
+}
+
+/**
+ * Query block header by its block hash
+ *
+ * @param {number|string} chainId - a chain id that is valid for the network
+ * @param {string} hash - block hash
+ * @param {string} [network="mainnet01"] - chainweb network
+ * @param {string} [host="https://api.chainweb.com"] - chainweb api host
+ * @return {Promise} Block with the requested hash
+ *
+ * @alias module:chainweb.block.hash
+ */
+const blockByBlockHash = async (chainId, hash, network, host) => {
+    const hdr = await headerByBlockHash(chainId, hash, network, host);
+    const bs = await headers2blocks([hdr], network, host);
+    return bs[0];
 }
 
 /* ************************************************************************** */
@@ -1388,7 +1421,7 @@ const filterEvents = (blocks) => {
  * @param {string} [host="https://api.chainweb.com"] - chainweb api host
  * @return {Promise} Array of events
  *
- * @alias module:chainweb.transaction.range
+ * @alias module:Pact.transaction.range
  */
 const events = async (chainId, start, end, network, host) => {
     const x = await blocks(chainId, start, end, network, host);
@@ -1405,7 +1438,7 @@ const events = async (chainId, start, end, network, host) => {
  * @param {string} [host="https://api.chainweb.com"] - chainweb api host
  * @return {Promise} Array of Pact events
  *
- * @alias module:chainweb.event.recent
+ * @alias module:Pact.event.recent
  */
 const recentEvents = async (chainId, depth = 0, n = 1, network, host) => {
     const x = await recentBlocks(chainId, depth, n, network, host);
@@ -1429,7 +1462,7 @@ const recentEvents = async (chainId, depth = 0, n = 1, network, host) => {
  * @param {string} [host="https://api.chainweb.com"] - chainweb api host
  * @returns the event source object the backs the stream
  *
- * @alias module:chainweb.event.stream
+ * @alias module:Pact.event.stream
  */
 const eventStream = (depth, chainIds, callback, network, host) => {
     const ro = depth > 1 ? {} : { retry404: true, minTimeout: 1000 };
@@ -1452,7 +1485,7 @@ const eventStream = (depth, chainIds, callback, network, host) => {
  * @param {string} [host="https://api.chainweb.com"] - chainweb api host
  * @return {Promise} Events from the block with the requested hash
  *
- * @alias module:chainweb.event.hash
+ * @alias module:Pact.event.hash
  */
 const eventsByBlockHash = async (chainId, hash, network, host) => {
     const block = await blockByBlockHash(chainId, hash, network, host)
@@ -1468,7 +1501,7 @@ const eventsByBlockHash = async (chainId, hash, network, host) => {
  * @param {string} [host="https://api.chainweb.com"] - chainweb api host
  * @return {Promise} Events from the block of the requested height
  *
- * @alias module:chainweb.event.height
+ * @alias module:Pact.event.height
  */
 const eventsByHeight = async (chainId, height, network, host) =>
     events(chainId, height, height, network, host);
@@ -1524,6 +1557,9 @@ module.exports = {
   wallet: {
     sign: signWallet,
     sendSigned: sendSigned
+  },
+  cut: {
+    current: currentCut
   },
   event: {
       range: events,
