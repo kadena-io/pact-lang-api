@@ -306,3 +306,85 @@ You probably want to use the `Pact.simple` functions instead of these.
 Pact.api.mkSingleCmd([signatures],{cmd-object}) -> {"hash":<string>, "sigs":[signatures], "cmd":cmd}
 Pact.api.mkPublicSend([cmd]) -> {"cmds":[cmd]} \\ send as POST to /api/poll
 ```
+
+### Events
+
+Events from transaction outputs are flattened into a single array or stream. Each item contains a height property that indicates the block height at which it occurred.
+
+Example of an event object:
+
+```
+{
+  params: [
+    '4677a09ea1602e4e09fe01eb1196cf47c0f44aa44aac903d5f61be7da3425128',
+    'f6357785d8b147c1fac66cdbd607a0b1208d62996d7d62cc92856d0ab229bea2',
+    10462.28
+  ],
+  name: 'TRANSFER',
+  module: { namespace: null, name: 'coin' },
+  moduleHash: 'ut_J_ZNkoyaPUEJhiwVeWnkSQn9JT9sQCWKdjjVVrWo',
+  height: 1511601
+}
+```
+
+```
+/**
+ * @param {number|string} chainId - a chain id that is valid for the network
+ * @param {number[]} chainIds - array of chain ids
+ * @param {number} depth - confirmation depth. Only blocks at this depth are returned
+ * @param {string} blockHash - block hash
+ * @param {number} blockHeight - block height
+ * @param {number} start - start block height
+ * @param {number} end - end block height
+ * @param {number} n - maximual number of blocks from which events are returned. The actual number of returned events may be lower.
+ * @param {eventCallback} callback - function that is called for each event
+ * @param {string} [network="mainnet01"] - chainweb network
+ * @param {string} [host="https://api.chainweb.com"] - chainweb api host
+ ```
+#### Events By Height
+
+```javascript
+Pact.event.height(chainId, blockHeight, network, host)
+```
+
+
+#### Events By Block Hash
+
+```javascript
+Pact.event.blockHash(chainId, blockHash, network, host)
+```
+
+##### Recent Events
+
+These functions return items from recent blocks in the block history starting
+at a given depth.
+
+The depth parameter is useful to avoid receiving items from orphaned blocks.
+
+```javascript
+Pact.event.recent(chainId, depth, n, network, host)
+```
+
+#### Range of Events
+
+These functions query events from a range of block heights and return the
+result as an array.
+
+```javascript
+Pact.event.range(chainId, start, end, network, host)
+```
+
+
+#### Event Stream
+
+Streams are backed by EventSource clients that retrieve header update
+events from the Chainweb API.
+
+```javascript
+const es = Pact.event.stream(depth, chainIdS, callback, network, host);
+```
+
+Streams are online and only return items from blocks that got mined after the
+stream was started. They are thus useful for prompt notification of new
+items. In order of exhaustively querying all, including old, items, one
+should also use `range` or `recent` queries for the respective type of item.
