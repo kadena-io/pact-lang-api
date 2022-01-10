@@ -18,6 +18,7 @@
     "blakejs": "^1.0.1",
     "blue-tape": "^1.0.0",
     "browserify": "^16.5.1",
+    "chainweb": "^2.0.0",
     "eventsource": "^1.1.0",
     "jest": "^27.4.3",
     "node-fetch": "^2.6.6",

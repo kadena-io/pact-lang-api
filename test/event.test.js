@@ -1,5 +1,4 @@
 var Pact = require("./../pact-lang-api.js")
-const HeaderBuffer = require('../HeaderBuffer');
 
 /* ************************************************************************** */
 /* Test settings */
@@ -170,38 +169,3 @@ describe("stream", () => {
     }, 61000);
 
 }, 61000);
-
-/* ************************************************************************** */
-/* HeaderBuffer */
-
-function testHeaderBuffer () {
-
-    let output = [];
-    const hb = new HeaderBuffer(2, x => output.push(x));
-
-    const hdr = i => ({
-        header: {
-            hash: `${i}`,
-            parent: `${i - 1}`,
-            height: i
-        }
-    });
-
-    for (let i = 10; i < 15; ++i) {
-        // console.log("i:", i); console.log("buffer:", hb);
-        hb.add(hdr(i));
-    }
-
-    // reorg
-    for (let i = 13; i < 17; ++i) {
-        // console.log("i:", i); console.log("buffer:", hb);
-        hb.add(hdr(i));
-    }
-
-    let a = 10;
-    return output.every(x => x.header.hash == a++);
-}
-
-test("HeaderBuffer", () => {
-    expect(testHeaderBuffer()).toBe(true);
-});
