@@ -5,7 +5,7 @@
   "main": "pact-lang-api.js",
   "scripts": {
     "start:pact": "rm -Rf ./log && mkdir log && pact --serve server.conf",
-    "test": "tape ./test/*.test.js",
+    "test": "tape ./test/*[^event].test.js && jest ./test.event.test.js",
     "build": "browserify pact-lang-api.js -o pact-lang-api.min.js && browserify pact-lang-api-global.js -o pact-lang-api-global.min.js"
   },
   "repository": {
@@ -16,10 +16,14 @@
   "license": "BSD3",
   "dependencies": {
     "blakejs": "^1.0.1",
-    "blue-tape": "^1.0.0",
     "browserify": "^16.5.1",
-    "node-fetch": "^2.6.0",
-    "tape": "^4.13.2",
+    "chainweb": "^2.0.0",
+    "node-fetch": "^2.6.6",
     "tweetnacl": "^0.14.5"
+  },
+  "devDependencies": {
+    "blue-tape": "^1.0.0",
+    "jest": "^27.4.3",
+    "tape": "^4.13.2"
   }
 }

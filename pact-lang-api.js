@@ -7,6 +7,7 @@
 const blake = require("blakejs");
 const nacl = require("tweetnacl");
 const fetch = require("node-fetch");
+const chainweb = require("chainweb");
 
 /**
  * Convert binary to hex.
@@ -874,5 +875,15 @@ module.exports = {
   wallet: {
     sign: signWallet,
     sendSigned: sendSigned
+  },
+  cut: {
+    current: chainweb.cut.current
+  },
+  event: {
+      range: chainweb.event.range,
+      recent: chainweb.event.recent,
+      stream: chainweb.event.stream,
+      height: chainweb.event.height,
+      blockHash: chainweb.event.blockHash,
   }
 };

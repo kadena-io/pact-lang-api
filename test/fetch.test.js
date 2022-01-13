@@ -3,9 +3,7 @@ var Pact = require("./../pact-lang-api.js")
 var test1 = require("./test-case1.js")
 
 // Import Test Case
-var { kp, cmd, nonce, pactCode, envData, meta, networkId } = require("./test-case1.js")
-
-var apiHost = "http://localhost:9001"
+var { kp, cmd, nonce, pactCode, envData, meta, networkId, apiHost } = require("./test-case1.js")
 
 // test Pact.fetch.send()
 test("Make a send request and retrieve request key", async function(t) {
