@@ -1,7 +1,7 @@
 {
   "name": "pact-lang-api",
-  "version": "4.1.2",
-  "description": "hashing and signing functions needed to interact with Pact 3.0 and greater",
+  "version": "4.2.0",
+  "description": "JS API for Pact Smart Contract Language on Kadena Chainweb",
   "main": "pact-lang-api.js",
   "scripts": {
     "start:pact": "rm -Rf ./log && mkdir log && pact --serve server.conf",
@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "github.com/kadena-io/pact"
+    "url": "github.com/kadena-io/pact-lang-api"
   },
   "author": "Will Martino",
   "license": "BSD3",
