@@ -1,6 +1,6 @@
 {
   "name": "pact-lang-api",
-  "version": "4.3.0",
+  "version": "4.3.1",
   "description": "JS API for Pact on Kadena Chainweb",
   "main": "pact-lang-api.js",
   "scripts": {
