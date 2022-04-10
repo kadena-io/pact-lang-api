@@ -241,6 +241,21 @@ var signHash = function(hsh, keyPair) {
   return { hash: hsh, sig: binToHex(sigBin), pubKey: keyPair.publicKey };
 };
 
+/**
+ * Verify a signature
+ * @param msg - Message that was signed
+ * @param sig - Signature
+ * @param publicKey - Public key that signed the message
+ * @return {bool} True if signature is valid, false otherwise
+ */
+ var verifySig = function(msg, sig, publicKey) {
+  return nacl.sign.detached.verify(
+    hashBin(msg),
+    hexToBin(sig),
+    hexToBin(publicKey)
+  );
+};
+
 var pullSig = function(s) {
   if (!s.hasOwnProperty("sig")) {
     throw new TypeError(
@@ -840,7 +855,7 @@ module.exports = {
     restoreKeyPairFromSecretKey: restoreKeyPairFromSecretKey,
     sign: sign,
     signHash: signHash,
-    verifySig: nacl.sign.detached.verify,
+    verifySig: verifySig,
     toTweetNaclSecretKey: toTweetNaclSecretKey
   },
   api: {
