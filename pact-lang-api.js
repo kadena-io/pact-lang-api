@@ -248,7 +248,7 @@ var signHash = function(hsh, keyPair) {
  * @param publicKey - Public key that signed the message
  * @return {bool} True if signature is valid, false otherwise
  */
- var verifySig = function(msg, sig, publicKey) {
+ var verifySignature = function(msg, sig, publicKey) {
   return nacl.sign.detached.verify(
     hashBin(msg),
     hexToBin(sig),
@@ -855,7 +855,8 @@ module.exports = {
     restoreKeyPairFromSecretKey: restoreKeyPairFromSecretKey,
     sign: sign,
     signHash: signHash,
-    verifySig: verifySig,
+    verifySig: nacl.sign.detached.verify,
+    verifySignature: verifySignature,
     toTweetNaclSecretKey: toTweetNaclSecretKey
   },
   api: {

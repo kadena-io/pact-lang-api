@@ -77,12 +77,12 @@ test("Takes in cmd and keypair, returns object with hash and signature", functio
   t.end()
 })
 
-// test Pact.crypto.verifySign()
-test("Takes in hash and keypair, returns object with hash and signature", function(t) {
+// test Pact.crypto.verifySignature()
+test("Takes in message, signature and public key, returns true if signature is valid, false otherwise", function(t) {
   var msg = JSON.stringify(cmd);
   var result = Pact.crypto.sign(msg, kp);
-  var actual = Pact.crypto.verifySig(msg, result.sig, kp.publicKey);
-  var expected = true
+  var actual = Pact.crypto.verifySignature(msg, result.sig, kp.publicKey);
+  var expected = true;
 
   t.equals(actual, expected);
   t.end();
