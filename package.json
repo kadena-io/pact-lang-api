@@ -1,6 +1,6 @@
 {
   "name": "pact-lang-api",
-  "version": "4.3.3",
+  "version": "4.3.4",
   "description": "JS API for Pact on Kadena Chainweb",
   "main": "pact-lang-api.js",
   "scripts": {
@@ -17,7 +17,7 @@
   "dependencies": {
     "blakejs": "^1.0.1",
     "browserify": "^16.5.1",
-    "chainweb": "^2.0.3",
+    "chainweb": "^2.0.4",
     "node-fetch": "^2.6.6",
     "tweetnacl": "^0.14.5"
   },
