@@ -51,8 +51,8 @@ A helper function for constructing native Pact commands.
    * "chainId" represents the chain Id that the tx will be sent to.
    * "gasPrice" represents the gas price of the tx.
    * "gasLimit" represents the gas limit of the tx.
-   * "creationTime" represents the tx's wait time to be considered a candidate for inclusion into a block in the blockchain. (in seconds)
-   * "ttl" represents the tx's maximum wait time to be considered a candidate for inclusion into a block in the blockchain. (in seconds)
+   * "creationTime" represents the time (unix seconds since 1970) that the transaction is submitted to the blockchain.  Cannot be in the future.
+   * "ttl" represents the number of seconds after the creationTime that a tx can be considered a candidate for inclusion into a block in the blockchain.
 - `mkCap` prepares a capability object to be signed with keyPairs using signing API.
 
 ```
