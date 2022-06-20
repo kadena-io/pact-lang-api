@@ -288,7 +288,7 @@ A simplified set of functions for working with the api.
 Pact.simple.exec.createCommand([keyPair], <nonce: string>, <pactCode: string>, <envData: object>) -> {"cmds":[...]}
 
 ## Creates a command to send as POST to /api/local
-Pact.simple.exec.createLocalRequest([keyPair], <nonce: string>, <pactCode: string>, <envData: object>) -> {"hash": "...", sigs: [...], cmd: {...} }
+Pact.simple.exec.createLocalCommand([keyPair], <nonce: string>, <pactCode: string>, <envData: object>) -> {"hash": "...", sigs: [...], cmd: {...} }
 
 ## Creates a command to send as POST to /api/poll
 Pact.simple.exec.createPollRequest({"cmds": [...]}) -> {"requestKeys": [...]}
