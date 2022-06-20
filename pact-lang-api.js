@@ -36,7 +36,7 @@ var hexToBin = function(h) {
   return new Uint8Array(Buffer.from(h, "hex"));
 };
 
-b64url = (function() {
+var b64url = (function() {
 
   'use strict';
 
