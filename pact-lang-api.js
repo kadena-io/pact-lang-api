@@ -8,6 +8,7 @@ const blake = require("blakejs");
 const nacl = require("tweetnacl");
 const fetch = require("node-fetch");
 const chainweb = require("chainweb");
+const Buffer = require("buffer").Buffer;
 
 /**
  * Convert binary to hex.
