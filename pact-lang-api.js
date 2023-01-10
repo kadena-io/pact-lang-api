@@ -834,9 +834,7 @@ const sendSigned = async function (signedCmd, apiHost) {
   const cmd = {
     "cmds": [ signedCmd ]
   }
-  const txRes = await fetch(`${apiHost}/api/v1/send`, mkReq(cmd));
-  const tx = await txRes.json();
-  return tx;
+  return parseRes(fetch(`${apiHost}/api/v1/send`, mkReq(cmd)));
 }
 
 module.exports = {
